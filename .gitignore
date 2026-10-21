@@ -1,0 +1,41 @@
+# Секреты / учётные данные
+auth.json
+trust.json
+
+# Рантайм и локальное состояние
+sessions/
+
+# Вендорные бинарники (генерятся заново при установке)
+bin/
+
+# Node / каталог установленных пакетов.
+# Источник правды по пакетам — settings.json (ключ "packages"),
+# поэтому сам npm/ не версонируем.
+node_modules/
+npm/
+
+# Темы: не тречим светлые (держим репо тёмным)
+themes/*light*.json
+themes/*-day.json
+themes/*latte*.json
+
+# ОС
+.DS_Store
+
+# Редакторы
+*.swp
+*.swo
+*~
+
+# subagents
+run-history.jsonl
+.pi-subagents
+pi-subagents
+missions
+
+# бандлы
+package-lock.json
+models-store.json
+
+# Herdr-интеграция (артефакт herdr integration install pi, обновляет herdr)
+extensions/herdr-agent-state.ts

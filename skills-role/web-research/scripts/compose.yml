@@ -1,0 +1,43 @@
+services:
+  searxng:
+    image: searxng/searxng:latest
+    container_name: web-research-searxng
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9388:8080"
+    volumes:
+      - ./searxng:/etc/searxng:rw
+    environment:
+      - SEARXNG_BASE_URL=http://localhost:9388/
+      - SEARXNG_SECRET=${SEARXNG_SECRET}
+      - UWSGI_WORKERS=4
+      - UWSGI_THREADS=4
+    cap_drop: [ALL]
+    cap_add: [CHOWN, SETGID, SETUID]
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  camofox:
+    image: ghcr.io/jo-inc/camofox-browser:latest
+    container_name: web-research-camofox
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9377:9377"
+    env_file:
+      - .env
+    tmpfs:
+      - /tmp
+      - /home/camofox/.cache
+    mem_limit: 2g
+    pids_limit: 1024
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9377/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

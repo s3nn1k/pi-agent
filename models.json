@@ -1,0 +1,73 @@
+{
+  "providers": {
+    "ollama": {
+      "baseUrl": "http://127.0.0.1:11434/v1",
+      "api": "openai-responses",
+      "apiKey": "ollama",
+      "models": [
+        {
+          "id": "carstenuhlig/omnicoder-2-9b:latest",
+          "contextWindow": 32768
+        }
+      ]
+    },
+    "zai": {
+      "baseUrl": "https://api.z.ai/api/coding/paas/v4",
+      "api": "openai-completions",
+      "models": [
+        {
+          "id": "glm-5.3",
+          "name": "GLM 5.3 (Z.AI)",
+          "reasoning": true,
+          "thinkingLevelMap": {
+            "off": null,
+            "minimal": null,
+            "low": "low",
+            "medium": null,
+            "high": "high",
+            "xhigh": null,
+            "max": "max"
+          },
+          "input": ["text"],
+          "contextWindow": 1000000,
+          "maxTokens": 131072,
+          "cost": { "input": 1.4, "output": 4.4, "cacheRead": 0.26, "cacheWrite": 0 },
+          "compat": {
+            "supportsStore": false,
+            "supportsDeveloperRole": false,
+            "supportsReasoningEffort": true,
+            "maxTokensField": "max_tokens",
+            "thinkingFormat": "zai",
+            "zaiToolStream": true
+          }
+        },
+        {
+          "id": "glm-5.3-flash",
+          "name": "GLM 5.3 Flash (Z.AI)",
+          "reasoning": true,
+          "thinkingLevelMap": {
+            "off": null,
+            "minimal": null,
+            "low": "low",
+            "medium": null,
+            "high": "high",
+            "xhigh": null,
+            "max": "max"
+          },
+          "input": ["text", "image"],
+          "contextWindow": 1000000,
+          "maxTokens": 131072,
+          "cost": { "input": 0.075, "output": 0.25, "cacheRead": 0.015, "cacheWrite": 0 },
+          "compat": {
+            "supportsStore": false,
+            "supportsDeveloperRole": false,
+            "supportsReasoningEffort": true,
+            "maxTokensField": "max_tokens",
+            "thinkingFormat": "zai",
+            "zaiToolStream": true
+          }
+        }
+      ]
+    }
+  }
+}

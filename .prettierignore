@@ -1,0 +1,26 @@
+node_modules/
+npm/
+skills/web-research/scripts/node_modules/
+skills/telegram/scripts/node_modules/
+skills/web-research/scripts/cloak/cloak-fetch.mjs
+skills/web-research/scripts/cloak/cloak-script.mjs
+skills/web-research/scripts/cloak/challenges.mjs
+skills/web-research/scripts/cloak/lib/rate-limiter.mjs
+skills/web-research/scripts/cloak/lib/sandbox.mjs
+skills/web-research/scripts/cloak/scripts/screenshot.mjs
+skills/web-research/scripts/camofox/
+.claude/
+sessions/
+bin/
+.pi-subagents/
+package-lock.json
+models.json
+auth.json
+
+# helm-канон - vendored-эталон; {{-шаблоны не парсятся yaml-парсером, helm-форматтера не существует
+skills/service-deploy/canon/
+# рантайм pi: перезаписывается без финального newline - churn в каждом прогоне
+settings.json
+
+# карантин скиллов - не форматировать и не трогать
+todo/

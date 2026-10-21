@@ -1,0 +1,17 @@
+{
+  "providerPriority": ["zai", "openai-codex"],
+  "tiers": {
+    "frontier": {
+      "zai": "glm-5.3:high",
+      "openai-codex": "gpt-5.6-sol:xhigh"
+    },
+    "workhorse": {
+      "zai": "glm-5.3:low",
+      "openai-codex": "gpt-5.6-luna:minimal"
+    },
+    "cheap": {
+      "zai": "glm-5.3-flash:low",
+      "openai-codex": "gpt-5.6-luna:minimal"
+    }
+  }
+}

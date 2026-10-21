@@ -1,0 +1,6 @@
+{
+  "mainBranches": ["main", "master"],
+  "includeAgentDir": false,
+  "pullDirty": false,
+  "timeoutMs": 20000
+}

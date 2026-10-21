@@ -1,0 +1,11 @@
+{
+  "name": "web-research-scripts",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Vendored cloak scripts + deps for the web-research skill (browser-search).",
+  "type": "module",
+  "dependencies": {
+    "cloakbrowser": "0.4.8",
+    "playwright-core": "1.60.0"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "lastChangelogVersion": "1.3.0",
+  "theme": "gruvbox-dark-soft",
+  "defaultProvider": "zai",
+  "defaultModel": "glm-5.3",
+  "defaultThinkingLevel": "high",
+  "retry": {
+    "enabled": true,
+    "maxRetries": 10,
+    "baseDelayMs": 1000,
+    "provider": {
+      "maxRetries": 0,
+      "maxRetryDelayMs": 60000
+    }
+  },
+  "packages": [
+    {
+      "source": "npm:pi-subagents",
+      "prompts": [],
+      "skills": [
+        "pi-subagents"
+      ]
+    }
+  ],
+  "skills": [
+    "~/projects/engineering-standards/agents/skills/go-standards",
+    "~/projects/engineering-standards/agents/skills/go-integrations-tests"
+  ],
+  "quietStartup": false,
+  "tuiMode": "fullscreen",
+  "hideThinkingBlock": true,
+  "subagents": {
+    "disableBuiltins": true,
+    "defaultModel": "zai/glm-5.3-flash:low"
+  },
+  "keybindings": {
+    "app.editor.external": []
+  }
+}
