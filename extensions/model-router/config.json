@@ -3,7 +3,7 @@
   "tiers": {
     "frontier": {
       "zai": "glm-5.3:high",
-      "openai-codex": "gpt-5.6-sol:xhigh"
+      "openai-codex": "gpt-6.1-sol:high"
     },
     "workhorse": {
       "zai": "glm-5.3-flash:high",
