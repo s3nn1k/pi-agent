@@ -3,8 +3,8 @@ name: researcher
 description: |
   Веб-ресёрч по скиллу web-research: поиск + чтение страниц, бриф с источниками, уровнем
   уверенности и гэпами. Факты, не решения - синтез остаётся у оркестратора. Read-only.
-modelTier: cheap
-model: zai/glm-5.3-flash:low
+modelTier: workhorse
+model: zai/glm-5.3:low
 tools: read, bash
 inheritSkills: false
 skills: web-research

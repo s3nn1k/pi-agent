@@ -6,8 +6,8 @@ description: |
   по запросу: саммари, цитаты/фрагменты с таймкодами, ответы на вопросы по содержанию.
   Сырой транскрипт в контекст оркестратора не возвращается. НЕ для веб-поиска и
   браузинга (researcher).
-modelTier: cheap
-model: zai/glm-5.3-flash:low
+modelTier: workhorse
+model: zai/glm-5.3:low
 tools: read, bash
 inheritSkills: false
 skills: media-transcript

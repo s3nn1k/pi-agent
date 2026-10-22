@@ -4,8 +4,8 @@ description: |
   Read-only разведка кодовой базы и окружения: карта - где что живёт (файлы, символы,
   потоки данных), что менялось, риски-наблюдения, открытые вопросы. Факты с файл:строка,
   без советов и правок. Каноны не проверяет - это reviewer.
-modelTier: cheap
-model: zai/glm-5.3-flash:low
+modelTier: workhorse
+model: zai/glm-5.3:low
 tools: read, bash
 inheritSkills: false
 defaultContext: fresh
