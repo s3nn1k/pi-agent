@@ -5,6 +5,9 @@
   "defaultModel": "glm-5.3",
   "defaultThinkingLevel": "high",
   "defaultTools": ["+codemode"],
+  "codemode": {
+    "mode": "only"
+  },
   "retry": {
     "enabled": true,
     "maxRetries": 10,
