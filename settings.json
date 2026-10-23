@@ -4,6 +4,7 @@
   "defaultProvider": "zai",
   "defaultModel": "glm-5.3",
   "defaultThinkingLevel": "high",
+  "defaultTools": ["+codemode"],
   "retry": {
     "enabled": true,
     "maxRetries": 10,
