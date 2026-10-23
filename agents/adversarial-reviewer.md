@@ -6,7 +6,7 @@ description: |
   CHANGES_REQUESTED.
 modelTier: frontier
 model: zai/glm-5.3:high
-tools: read, bash
+tools: read, bash, codemode
 inheritSkills: false
 defaultContext: fresh
 inheritProjectContext: false

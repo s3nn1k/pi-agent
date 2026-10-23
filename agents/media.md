@@ -8,7 +8,7 @@ description: |
   браузинга (researcher).
 modelTier: workhorse
 model: zai/glm-5.3-flash:high
-tools: read, bash
+tools: read, bash, codemode
 inheritSkills: false
 skills: media-transcript
 skillPath: ../skills-role/media-transcript

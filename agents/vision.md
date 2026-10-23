@@ -7,7 +7,7 @@ description: |
   для генерации/редактирования изображений и НЕ для не-графических файлов.
 modelTier: workhorse
 model: zai/glm-5.3-flash:high
-tools: read
+tools: read, codemode
 inheritSkills: false
 defaultContext: fresh
 inheritProjectContext: false

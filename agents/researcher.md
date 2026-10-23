@@ -5,7 +5,7 @@ description: |
   уверенности и гэпами. Факты, не решения - синтез остаётся у оркестратора. Read-only.
 modelTier: workhorse
 model: zai/glm-5.3-flash:high
-tools: read, bash
+tools: read, bash, codemode
 inheritSkills: false
 skills: web-research
 skillPath: ../skills-role/web-research

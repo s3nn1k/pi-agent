@@ -6,7 +6,7 @@ description: |
   без советов и правок. Каноны не проверяет - это reviewer.
 modelTier: workhorse
 model: zai/glm-5.3-flash:high
-tools: read, bash
+tools: read, bash, codemode
 inheritSkills: false
 defaultContext: fresh
 inheritProjectContext: false
