@@ -6,7 +6,7 @@ description: |
   Vision-модель; файл читает сам (read -> attachment). Read-only, отвечает текстом. НЕ
   для генерации/редактирования изображений и НЕ для не-графических файлов.
 modelTier: workhorse
-model: zai/glm-5.3:low
+model: zai/glm-5.3-flash:high
 tools: read
 inheritSkills: false
 defaultContext: fresh

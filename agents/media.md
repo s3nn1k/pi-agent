@@ -7,7 +7,7 @@ description: |
   Сырой транскрипт в контекст оркестратора не возвращается. НЕ для веб-поиска и
   браузинга (researcher).
 modelTier: workhorse
-model: zai/glm-5.3:low
+model: zai/glm-5.3-flash:high
 tools: read, bash
 inheritSkills: false
 skills: media-transcript

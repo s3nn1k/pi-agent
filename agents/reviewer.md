@@ -6,7 +6,7 @@ description: |
   при запуске или выбирается из каталога по домену диффа; режим объявляет первой строкой.
   НЕ правит код; вердикт APPROVED / CHANGES_REQUESTED.
 modelTier: workhorse
-model: zai/glm-5.3:low
+model: zai/glm-5.3-flash:high
 tools: read, bash
 inheritSkills: false
 defaultContext: fresh

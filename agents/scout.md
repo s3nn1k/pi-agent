@@ -5,7 +5,7 @@ description: |
   потоки данных), что менялось, риски-наблюдения, открытые вопросы. Факты с файл:строка,
   без советов и правок. Каноны не проверяет - это reviewer.
 modelTier: workhorse
-model: zai/glm-5.3:low
+model: zai/glm-5.3-flash:high
 tools: read, bash
 inheritSkills: false
 defaultContext: fresh

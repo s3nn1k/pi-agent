@@ -6,7 +6,7 @@ description: |
   правит файлы, доводит gate (lint/тесты) до зелёного. Продуктовые/архитектурные решения
   эскалирует, не решает молча.
 modelTier: workhorse
-model: zai/glm-5.3:low
+model: zai/glm-5.3-flash:high
 inheritSkills: false
 defaultContext: fresh
 inheritProjectContext: false
