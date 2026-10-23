@@ -1,14 +1,11 @@
-import {
-  keyHint,
-  type ExtensionAPI,
-  type Theme,
-} from "@earendil-works/pi-coding-agent";
+import type { ExtensionAPI, Theme } from "@earendil-works/pi-coding-agent";
 import {
   truncateToWidth,
   visibleWidth,
   wrapTextWithAnsi,
   type Component,
 } from "@earendil-works/pi-tui";
+import { contentTextOf, expandHint, plural } from "../lib/compact-render.ts";
 
 const CONTROL_NOTICE_TYPE = "subagent_control_notice";
 const SUPERVISOR_REQUEST_TYPE = "subagent_supervisor_request";
@@ -36,25 +33,6 @@ function stringField(
 ): string {
   const value = record?.[key];
   return typeof value === "string" ? value : "";
-}
-
-function contentText(content: unknown): string {
-  if (typeof content === "string") {
-    return content;
-  }
-  if (!Array.isArray(content)) {
-    return "";
-  }
-  return content
-    .map((part) =>
-      part !== null &&
-      typeof part === "object" &&
-      typeof (part as { text?: unknown }).text === "string"
-        ? (part as { text: string }).text
-        : "",
-    )
-    .filter(Boolean)
-    .join("\n");
 }
 
 class CollapsedCardLine implements Component {
@@ -126,7 +104,7 @@ function controlCard(message: CardMessage): Card | undefined {
   const details = asRecord(message.details);
   const event = asRecord(details?.event);
   const body = sanitizeText(
-    stringField(details, "noticeText") || contentText(message.content),
+    stringField(details, "noticeText") || contentTextOf(message.content),
   );
   const eventType = stringField(event, "type").replaceAll("_", " ");
   const agent = stringField(event, "agent");
@@ -140,7 +118,7 @@ function controlCard(message: CardMessage): Card | undefined {
 function supervisorRequestCard(message: CardMessage): Card | undefined {
   const details = asRecord(message.details);
   const requestBody = sanitizeText(
-    stringField(details, "requestBody") || contentText(message.content),
+    stringField(details, "requestBody") || contentTextOf(message.content),
   );
   const requestId =
     stringField(details, "requestId") || stringField(details, "id");
@@ -247,7 +225,7 @@ function compactCardRenderer(
     const hiddenLines = card.bodyLines.length;
     const hint =
       hiddenLines > 0
-        ? ` (+${hiddenLines} line${hiddenLines === 1 ? "" : "s"}, ${keyHint("app.tools.expand", "to expand")})`
+        ? ` (+${plural(hiddenLines, "line")}, ${expandHint()} to expand)`
         : "";
     return new CollapsedCardLine(
       theme.fg("accent", theme.bold(card.heading)) + theme.fg("muted", hint),

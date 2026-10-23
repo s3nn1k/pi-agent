@@ -10,4 +10,4 @@
 - **Скиллы** - глобально `~/.pi/agent/skills/` (этот репо); проектно `.pi/skills/` (после
   trust); harness-agnostic `~/.agents/skills/`.
 - **Расширения** - `~/.pi/agent/extensions/` (ambient): скоупинг контекста
-  (`scope-agents-md.ts`), учёт квоты.
+  (`prompt-shaping/scope-agents-md.ts`), учёт квоты.

@@ -7,7 +7,7 @@ import type {
 } from "@earendil-works/pi-coding-agent";
 import { initTheme } from "@earendil-works/pi-coding-agent";
 import { Container, Text, type Component } from "@earendil-works/pi-tui";
-import { createCompactToolRendererResolver } from "./compact-tool-renderers.ts";
+import { createCompactToolRendererResolver } from "./renderers.ts";
 
 initTheme("dark", false);
 

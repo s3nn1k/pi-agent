@@ -1,5 +1,4 @@
 import {
-  keyHint,
   type AgentToolResult,
   type Theme,
   type ToolRendererResolver,
@@ -7,6 +6,7 @@ import {
   type ToolRenderers,
 } from "@earendil-works/pi-coding-agent";
 import { Text, type Component } from "@earendil-works/pi-tui";
+import { expandHint, plural, textBlocksOf } from "../lib/compact-render.ts";
 
 interface CompactRendererState {
   compactCallComponent?: Component;
@@ -105,20 +105,6 @@ function fallbackExpandedCall(
   return component;
 }
 
-function textBlocks(content: unknown): string[] {
-  if (!Array.isArray(content)) {
-    return [];
-  }
-  return content.flatMap((block) =>
-    typeof block === "object" &&
-    block !== null &&
-    (block as { type?: unknown }).type === "text" &&
-    typeof (block as { text?: unknown }).text === "string"
-      ? [(block as { text: string }).text]
-      : [],
-  );
-}
-
 function imageCount(content: unknown): number {
   if (!Array.isArray(content)) {
     return 0;
@@ -132,7 +118,7 @@ function imageCount(content: unknown): number {
 }
 
 function resultText(result: AnyToolResult, kind: RendererKind): string {
-  const blocks = textBlocks(result.content);
+  const blocks = textBlocksOf(result.content);
   if (
     kind === "codemode" &&
     blocks.length > 0 &&
@@ -145,10 +131,6 @@ function resultText(result: AnyToolResult, kind: RendererKind): string {
 
 function lineCount(text: string): number {
   return text === "" ? 0 : text.split("\n").length;
-}
-
-function plural(count: number, singular: string): string {
-  return `${count} ${singular}${count === 1 ? "" : "s"}`;
 }
 
 function nestedCallCounts(result: AnyToolResult, theme: Theme): string[] {
@@ -225,7 +207,7 @@ function compactResultText(params: CompactResultParams): string {
   if (duration) {
     parts.push(duration);
   }
-  parts.push(`(${keyHint("app.tools.expand", "to expand")})`);
+  parts.push(`(${expandHint()})`);
   return `${titleFor(toolName, kind)} ${parts.join(", ")}`;
 }
 
@@ -236,7 +218,7 @@ function fallbackExpandedResult(
   previous: Component | undefined,
 ): Text {
   const component = previous instanceof Text ? previous : new Text("", 0, 0);
-  const text = textBlocks(result.content).join("\n").replace(/\n+$/, "");
+  const text = textBlocksOf(result.content).join("\n").replace(/\n+$/, "");
   const images = imageCount(result.content);
   const content = [text, images > 0 ? `[${plural(images, "image")}]` : ""]
     .filter(Boolean)
