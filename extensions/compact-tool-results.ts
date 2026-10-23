@@ -20,6 +20,7 @@ import {
   type ToolRenderResultOptions,
 } from "@earendil-works/pi-coding-agent";
 import { hyperlink, Text, truncateToWidth } from "@earendil-works/pi-tui";
+import { createCompactToolRendererResolver } from "./lib/compact-tool-renderers.ts";
 
 type AnyToolDefinition = ToolDefinition<any, any, any>;
 
@@ -463,6 +464,7 @@ function registerCompactTool(
 }
 
 export default function compactToolResults(pi: ExtensionAPI): void {
+  pi.registerToolRenderer(createCompactToolRendererResolver());
   const cwd = process.cwd();
   registerCompactTool(
     pi,
