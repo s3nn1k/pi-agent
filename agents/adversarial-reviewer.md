@@ -4,8 +4,7 @@ description: |
   Адверсарий-ревью: попытка сломать изменение - сценарии отказа, гонки, nil/проглоченные
   ошибки, транзакции, границы, доступ. Read-only; НЕ правит код; вердикт APPROVED /
   CHANGES_REQUESTED.
-modelTier: frontier
-model: zai/glm-5.3:high
+model: router/frontier:high
 tools: read, bash, codemode
 inheritSkills: false
 defaultContext: fresh

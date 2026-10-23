@@ -1,8 +1,8 @@
 {
   "lastChangelogVersion": "1.3.0",
   "theme": "gruvbox-dark-soft",
-  "defaultProvider": "zai",
-  "defaultModel": "glm-5.3",
+  "defaultProvider": "router",
+  "defaultModel": "frontier",
   "defaultThinkingLevel": "high",
   "defaultTools": ["+codemode"],
   "codemode": {
@@ -35,7 +35,7 @@
   "hideThinkingBlock": true,
   "subagents": {
     "disableBuiltins": true,
-    "defaultModel": "zai/glm-5.3-flash:low"
+    "defaultModel": "router/workhorse:high"
   },
   "keybindings": {
     "app.editor.external": []

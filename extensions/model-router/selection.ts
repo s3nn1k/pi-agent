@@ -45,6 +45,26 @@ export type SelectionResult =
 export type LeaveReason =
   "hit 429" | "hit wk limit" | "hit 5h limit" | "no quota data" | "priority";
 
+export type RouteReason = "user" | "continuation" | "retry" | "direct";
+
+export function keepStickyProvider(
+  reason: RouteReason,
+  stickyProvider: string | undefined,
+  brokenProviders: ReadonlySet<string>,
+): boolean {
+  return (
+    reason !== "user" &&
+    stickyProvider !== undefined &&
+    !brokenProviders.has(stickyProvider)
+  );
+}
+
+export function blindFallbackProvider(
+  exhausted: readonly ExhaustedProvider[],
+): string | undefined {
+  return exhausted.find((entry) => entry.reason === "no data")?.provider;
+}
+
 export function parseCandidateString(raw: string): TierCandidate | undefined {
   if (typeof raw !== "string" || raw.length === 0) return undefined;
   const colon = raw.lastIndexOf(":");

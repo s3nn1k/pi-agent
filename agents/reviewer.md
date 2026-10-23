@@ -5,8 +5,7 @@ description: |
   дефект-ревью без канона (bug/регрессия/контракт/безопасность). Канон передаётся скиллом
   при запуске или выбирается из каталога по домену диффа; режим объявляет первой строкой.
   НЕ правит код; вердикт APPROVED / CHANGES_REQUESTED.
-modelTier: workhorse
-model: zai/glm-5.3-flash:high
+model: router/workhorse:high
 tools: read, bash, codemode
 inheritSkills: false
 defaultContext: fresh

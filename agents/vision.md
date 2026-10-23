@@ -5,8 +5,7 @@ description: |
   OCR rus+eng, структура UI-скриншотов, диаграмм, таблиц, кода и ошибок на скрине.
   Vision-модель; файл читает сам (read -> attachment). Read-only, отвечает текстом. НЕ
   для генерации/редактирования изображений и НЕ для не-графических файлов.
-modelTier: workhorse
-model: zai/glm-5.3-flash:high
+model: router/workhorse:high
 tools: read, codemode
 inheritSkills: false
 defaultContext: fresh

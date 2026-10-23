@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  blindFallbackProvider,
   demotePeakProviders,
+  keepStickyProvider,
   leaveReason,
   metricsFromWindows,
   parseCandidateString,
@@ -233,6 +235,50 @@ describe("selectProvider", () => {
     assert.deepEqual(fullWindows.exhausted, [
       { provider: "zai", reason: "429" },
     ]);
+  });
+});
+
+describe("keepStickyProvider", () => {
+  it("продолжение и retry держат провайдера прошлого запроса", () => {
+    const broken = new Set<string>();
+    assert.equal(keepStickyProvider("continuation", "zai", broken), true);
+    assert.equal(keepStickyProvider("retry", "zai", broken), true);
+    assert.equal(keepStickyProvider("direct", "zai", broken), true);
+  });
+
+  it("user-запрос и сломанный провайдер не держат", () => {
+    assert.equal(keepStickyProvider("user", "zai", new Set()), false);
+    assert.equal(
+      keepStickyProvider("continuation", "zai", new Set(["zai"])),
+      false,
+    );
+    assert.equal(
+      keepStickyProvider("continuation", undefined, new Set()),
+      false,
+    );
+  });
+});
+
+describe("blindFallbackProvider", () => {
+  it("первый no-data провайдер по приоритету", () => {
+    assert.equal(
+      blindFallbackProvider([
+        { provider: "zai", reason: "wk=100" },
+        { provider: "openai-codex", reason: "no data" },
+      ]),
+      "openai-codex",
+    );
+  });
+
+  it("реальное исчерпание без данных не даёт фолбэка", () => {
+    assert.equal(
+      blindFallbackProvider([
+        { provider: "zai", reason: "wk=100" },
+        { provider: "openai-codex", reason: "5h=100" },
+      ]),
+      undefined,
+    );
+    assert.equal(blindFallbackProvider([]), undefined);
   });
 });
 

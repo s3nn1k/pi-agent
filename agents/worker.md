@@ -5,8 +5,7 @@ description: |
   скиллом при запуске (или выбранному из каталога по домену задачи). Единственный writer:
   правит файлы, доводит gate (lint/тесты) до зелёного. Продуктовые/архитектурные решения
   эскалирует, не решает молча.
-modelTier: workhorse
-model: zai/glm-5.3-flash:high
+model: router/workhorse:high
 inheritSkills: false
 defaultContext: fresh
 inheritProjectContext: false
