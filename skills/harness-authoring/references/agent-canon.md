@@ -5,18 +5,18 @@
 
 Обязательные frontmatter-поля:
 
-| Поле             | Описание                                                                            |
-| ---------------- | ----------------------------------------------------------------------------------- |
-| `name`           | lowercase `a-z/0-9/-`, <=64                                                         |
-| `description`    | когда оркестратор выбирает агента                                                   |
-| `model`          | bare id -> текущий провайдер; `"provider/id"`; без поля -> `subagents.defaultModel` |
-| `tools`          | allowlist builtin; `mcp:<name>`; `./x.ts` - extension. Опущено = обычные builtin    |
-| `defaultContext` | `fresh` \| `fork`                                                                   |
+| Поле             | Описание                                                                                                                                                              |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`           | lowercase `a-z/0-9/-`, <=64                                                                                                                                           |
+| `description`    | когда оркестратор выбирает агента                                                                                                                                     |
+| `model`          | bare id -> текущий провайдер; `"provider/id"`; `"router/<tier>"` - виртуальная модель роутера (квоты/failover на каждый запрос); без поля -> `subagents.defaultModel` |
+| `tools`          | allowlist builtin; `mcp:<name>`; `./x.ts` - extension. Опущено = обычные builtin                                                                                      |
+| `defaultContext` | `fresh` \| `fork`                                                                                                                                                     |
 
-Ключевые опц.: `thinking` (`:level`), `fallbackModels`,
-`extensions`/`subagentOnlyExtensions`, `inheritSkills`/`skills`/`skillPath`,
-`inheritProjectContext`, `systemPromptMode` (`replace` дефолт \| `append`), `output`,
-`defaultReads`, `completionGuard`, `maxSubagentDepth` (Leaf: `0` - норма Leaf ниже).
+Ключевые опц.: `thinking` (`:level`), `extensions`/`subagentOnlyExtensions`,
+`inheritSkills`/`skills`/`skillPath`, `inheritProjectContext`, `systemPromptMode`
+(`replace` дефолт \| `append`), `output`, `defaultReads`, `completionGuard`,
+`maxSubagentDepth` (Leaf: `0` - норма Leaf ниже).
 
 fresh vs fork: `fresh` - чистый, только задача + свой промпт (дефолт для кастомных);
 `fork` - ветка сессии родителя с фильтрацией (дефолт для packaged planner/worker/oracle).
