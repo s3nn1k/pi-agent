@@ -1,6 +1,8 @@
 # Секреты / учётные данные
 auth.json
 trust.json
+mcp.json
+mcp-auth.json
 
 # Рантайм и локальное состояние
 sessions/
