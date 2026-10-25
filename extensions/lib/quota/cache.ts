@@ -1,5 +1,5 @@
 import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
-import { quotaProviders } from "./providers/registry";
+import { quotaProviders } from "./providers/registry.ts";
 import type { QuotaProvider, QuotaSnapshot } from "./types";
 
 const SNAPSHOT_TTL_MS = 5 * 60_000;
@@ -20,7 +20,7 @@ export interface RefreshOptions {
 }
 
 const cache = new Map<string, QuotaCacheEntry>();
-const inFlight = new Set<string>();
+const inFlight = new Map<string, Promise<void>>();
 
 export const BREAKER_MIN_TTL_MS = 90_000;
 export const BREAKER_MAX_TTL_MS = 15 * 60_000;
@@ -115,14 +115,12 @@ function fetchSignal(
   return sessionSignal ? AbortSignal.any([sessionSignal, timeout]) : timeout;
 }
 
-async function refreshProvider(
+async function loadProviderSnapshot(
   provider: QuotaProvider,
   ctx: ExtensionContext,
   sessionSignal: AbortSignal | undefined,
   options: RefreshOptions,
 ): Promise<void> {
-  if (inFlight.has(provider.id)) return;
-  inFlight.add(provider.id);
   try {
     const snapshot = await provider.fetchQuota(
       fetchSignal(sessionSignal, options.timeoutMs ?? FETCH_TIMEOUT_MS),
@@ -150,9 +148,27 @@ async function refreshProvider(
         error: message,
       });
     }
-  } finally {
-    inFlight.delete(provider.id);
   }
+}
+
+function refreshProvider(
+  provider: QuotaProvider,
+  ctx: ExtensionContext,
+  sessionSignal: AbortSignal | undefined,
+  options: RefreshOptions,
+): Promise<void> {
+  const inProgress = inFlight.get(provider.id);
+  if (inProgress) return inProgress;
+  const pending = loadProviderSnapshot(
+    provider,
+    ctx,
+    sessionSignal,
+    options,
+  ).finally(() => {
+    if (inFlight.get(provider.id) === pending) inFlight.delete(provider.id);
+  });
+  inFlight.set(provider.id, pending);
+  return pending;
 }
 
 export async function refreshQuotas(
