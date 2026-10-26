@@ -5,13 +5,13 @@
 
 Обязательные frontmatter-поля:
 
-| Поле             | Описание                                                                                                                                                              |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`           | lowercase `a-z/0-9/-`, <=64                                                                                                                                           |
-| `description`    | когда оркестратор выбирает агента                                                                                                                                     |
-| `model`          | bare id -> текущий провайдер; `"provider/id"`; `"router/<tier>"` - виртуальная модель роутера (квоты/failover на каждый запрос); без поля -> `subagents.defaultModel` |
-| `tools`          | allowlist builtin; `mcp:<name>`; `./x.ts` - extension. Опущено = обычные builtin                                                                                      |
-| `defaultContext` | `fresh` \| `fork`                                                                                                                                                     |
+| Поле             | Описание                                                                                                                                                                                                                                                                                                                   |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`           | lowercase `a-z/0-9/-`, <=64                                                                                                                                                                                                                                                                                                |
+| `description`    | когда оркестратор выбирает агента                                                                                                                                                                                                                                                                                          |
+| `model`          | bare id -> текущий провайдер; `"provider/id"`; `"router/<tier>"` - виртуальная модель роутера (квоты/failover на каждый запрос); без поля -> `subagents.defaultModel`. Агент на router-модели грузит роутер `subagentOnlyExtensions: ../extensions/model-router/index.ts`: foreground-дети не наследуют виртуальные модели |
+| `tools`          | allowlist builtin; `mcp:<name>`; `./x.ts` - extension. Опущено = обычные builtin                                                                                                                                                                                                                                           |
+| `defaultContext` | `fresh` \| `fork`                                                                                                                                                                                                                                                                                                          |
 
 Ключевые опц.: `thinking` (`:level`), `extensions`/`subagentOnlyExtensions`,
 `inheritSkills`/`skills`/`skillPath`, `inheritProjectContext`, `systemPromptMode`

@@ -5,6 +5,7 @@ description: |
   потоки данных), что менялось, риски-наблюдения, открытые вопросы. Факты с файл:строка,
   без советов и правок. Каноны не проверяет - это reviewer.
 model: router/workhorse:high
+subagentOnlyExtensions: ../extensions/model-router/index.ts
 tools: read, bash, codemode
 inheritSkills: false
 defaultContext: fresh

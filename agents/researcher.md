@@ -4,6 +4,7 @@ description: |
   Веб-ресёрч по скиллу web-research: поиск + чтение страниц, бриф с источниками, уровнем
   уверенности и гэпами. Факты, не решения - синтез остаётся у оркестратора. Read-only.
 model: router/workhorse:high
+subagentOnlyExtensions: ../extensions/model-router/index.ts
 tools: read, bash, codemode
 inheritSkills: false
 skills: web-research

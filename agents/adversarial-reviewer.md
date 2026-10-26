@@ -6,6 +6,7 @@ description: |
   Read-only; НЕ правит код; вердикт APPROVED /
   CHANGES_REQUESTED.
 model: router/frontier:high
+subagentOnlyExtensions: ../extensions/model-router/index.ts
 tools: read, bash, codemode
 inheritSkills: false
 defaultContext: fresh

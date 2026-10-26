@@ -6,6 +6,7 @@ description: |
   правит файлы, доводит gate (lint/тесты) до зелёного. Продуктовые/архитектурные решения
   эскалирует, не решает молча.
 model: router/workhorse:high
+subagentOnlyExtensions: ../extensions/model-router/index.ts
 inheritSkills: false
 defaultContext: fresh
 inheritProjectContext: false

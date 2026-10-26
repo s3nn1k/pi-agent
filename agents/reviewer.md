@@ -6,6 +6,7 @@ description: |
   при запуске или выбирается из каталога по домену диффа; режим объявляет первой строкой.
   НЕ правит код; вердикт APPROVED / CHANGES_REQUESTED.
 model: router/workhorse:high
+subagentOnlyExtensions: ../extensions/model-router/index.ts
 tools: read, bash, codemode
 inheritSkills: false
 defaultContext: fresh

@@ -7,6 +7,7 @@ description: |
   Сырой транскрипт в контекст оркестратора не возвращается. НЕ для веб-поиска и
   браузинга (researcher).
 model: router/workhorse:high
+subagentOnlyExtensions: ../extensions/model-router/index.ts
 tools: read, bash, codemode
 inheritSkills: false
 skills: media-transcript

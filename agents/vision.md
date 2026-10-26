@@ -6,6 +6,7 @@ description: |
   Vision-модель; файл читает сам (read -> attachment). Read-only, отвечает текстом. НЕ
   для генерации/редактирования изображений и НЕ для не-графических файлов.
 model: router/workhorse:high
+subagentOnlyExtensions: ../extensions/model-router/index.ts
 tools: read, codemode
 inheritSkills: false
 defaultContext: fresh
