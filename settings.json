@@ -34,7 +34,7 @@
   ],
   "quietStartup": false,
   "tuiMode": "fullscreen",
-  "hideThinkingBlock": true,
+  "hideThinkingBlock": false,
   "subagents": {
     "disableBuiltins": true,
     "defaultModel": "router/workhorse:high"
