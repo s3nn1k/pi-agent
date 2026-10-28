@@ -32,9 +32,7 @@ const SUBAGENT_COMMANDS = [
   "pi-subagents-bridge",
 ];
 
-const MODEL_COMMANDS = ["model", "scoped-models"];
-
-const BLOCKED_COMMANDS = new Set([...SUBAGENT_COMMANDS, ...MODEL_COMMANDS]);
+const BLOCKED_COMMANDS = new Set(SUBAGENT_COMMANDS);
 
 let notifyBlockedCommand: ((command: string) => void) | undefined;
 
