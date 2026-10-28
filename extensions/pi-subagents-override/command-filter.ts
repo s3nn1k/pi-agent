@@ -6,6 +6,7 @@ import {
   matchesKey,
   Key,
   type AutocompleteProvider,
+  type TUI,
 } from "@earendil-works/pi-tui";
 
 const SUBAGENT_COMMANDS = [
@@ -54,6 +55,18 @@ export function blockedCommandOf(text: string): string | undefined {
 }
 
 class CommandFilterEditor extends CustomEditor {
+  private readonly onInputHandled: () => void;
+
+  constructor(
+    tui: TUI,
+    theme: ConstructorParameters<typeof CustomEditor>[1],
+    keybindings: ConstructorParameters<typeof CustomEditor>[2],
+    onInputHandled: () => void,
+  ) {
+    super(tui, theme, keybindings);
+    this.onInputHandled = onInputHandled;
+  }
+
   override handleInput(data: string): void {
     const blocked = blockedCommandOf(this.getText());
     if (blocked !== undefined && matchesKey(data, Key.enter)) {
@@ -61,6 +74,7 @@ class CommandFilterEditor extends CustomEditor {
       return;
     }
     super.handleInput(data);
+    this.onInputHandled();
   }
 }
 
@@ -118,15 +132,42 @@ function filteredAutocompleteProvider(
   };
 }
 
-export function registerCommandFilter(pi: ExtensionAPI): void {
+export function registerCommandFilter(
+  pi: ExtensionAPI,
+  onToolsExpandedChange: (expanded: boolean) => void,
+): void {
   pi.on("session_start", (_event, ctx) => {
     if (!ctx.hasUI || ctx.mode !== "tui") {
       return;
     }
-    ctx.ui.setEditorComponent(
-      (tui, theme, keybindings) =>
-        new CommandFilterEditor(tui, theme, keybindings),
-    );
+    let active = true;
+    let toolsExpanded = ctx.ui.getToolsExpanded();
+    onToolsExpandedChange(toolsExpanded);
+    let editorKeybindings: ConstructorParameters<typeof CustomEditor>[2];
+    let editorTui: TUI | undefined;
+    const refresh = () => {
+      if (!active || editorTui === undefined) return;
+      const nextToolsExpanded = ctx.ui.getToolsExpanded();
+      if (nextToolsExpanded === toolsExpanded) return;
+      toolsExpanded = nextToolsExpanded;
+      onToolsExpandedChange(nextToolsExpanded);
+      editorTui.invalidate();
+      editorTui.requestRender();
+    };
+    ctx.ui.setEditorComponent((tui, theme, keybindings) => {
+      editorKeybindings = keybindings;
+      editorTui = tui;
+      return new CommandFilterEditor(tui, theme, keybindings, refresh);
+    });
+    const unsubscribeInput = ctx.ui.onTerminalInput((data) => {
+      if (editorKeybindings?.matches(data, "app.tools.expand")) {
+        queueMicrotask(refresh);
+      }
+    });
+    pi.on("session_shutdown", () => {
+      active = false;
+      unsubscribeInput();
+    });
     ctx.ui.addAutocompleteProvider((provider) =>
       filteredAutocompleteProvider(provider),
     );
