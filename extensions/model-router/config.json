@@ -1,5 +1,6 @@
 {
   "providerPriority": ["zai", "openai-codex"],
+  "exhaustedThresholdPercent": 95,
   "tiers": {
     "frontier": {
       "zai": "glm-5.3:high",

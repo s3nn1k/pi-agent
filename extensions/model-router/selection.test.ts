@@ -17,6 +17,7 @@ function base(overrides: Partial<SelectionInput>): SelectionInput {
     peakProviders: new Set<string>(),
     quotas: {},
     brokenProviders: new Set<string>(),
+    threshold: 95,
     tier: {
       zai: "glm-5.3:high",
       "openai-codex": "gpt-5.6-sol:xhigh",
@@ -122,7 +123,21 @@ describe("selectProvider", () => {
     assert.equal(result.decision.pass, 2);
   });
 
-  it("проход 3: 80<=wk<100", () => {
+  it("проход 3: 80<=wk<порог", () => {
+    const result = selectProvider(
+      base({
+        quotas: {
+          zai: { wk: 94, fh: 50 },
+          "openai-codex": { wk: 85, fh: 100 },
+        },
+      }),
+    );
+    assert.ok(result.ok);
+    assert.equal(result.decision.provider, "zai");
+    assert.equal(result.decision.pass, 3);
+  });
+
+  it("проход 4 дожимает wk на пороге", () => {
     const result = selectProvider(
       base({
         quotas: {
@@ -133,7 +148,42 @@ describe("selectProvider", () => {
     );
     assert.ok(result.ok);
     assert.equal(result.decision.provider, "zai");
-    assert.equal(result.decision.pass, 3);
+    assert.equal(result.decision.pass, 4);
+    assert.equal(result.decision.wk, 95);
+  });
+
+  it("проход 4 дожимает 5h на пороге в порядке приоритета", () => {
+    const result = selectProvider(
+      base({
+        quotas: {
+          zai: { wk: 50, fh: 97 },
+          "openai-codex": { wk: 50, fh: 98 },
+          claude: { wk: 50, fh: 99 },
+        },
+      }),
+    );
+    assert.ok(result.ok);
+    assert.equal(result.decision.provider, "zai");
+    assert.equal(result.decision.pass, 4);
+    assert.equal(result.decision.fh, 97);
+  });
+
+  it("5h=100 не дожимается", () => {
+    const result = selectProvider(
+      base({
+        providerPriority: ["zai", "openai-codex"],
+        tier: { zai: "glm:high", "openai-codex": "gpt:xhigh" },
+        quotas: {
+          zai: { wk: 10, fh: 100 },
+          "openai-codex": { wk: 10, fh: 100 },
+        },
+      }),
+    );
+    assert.ok(!result.ok);
+    assert.deepEqual(result.exhausted, [
+      { provider: "zai", reason: "5h=100" },
+      { provider: "openai-codex", reason: "5h=100" },
+    ]);
   });
 
   it("fh=100 проваливает все проходы", () => {
@@ -284,25 +334,36 @@ describe("blindFallbackProvider", () => {
 
 describe("leaveReason", () => {
   it("брейкер -> hit 429", () => {
-    assert.equal(leaveReason(true, { wk: 100, fh: 100 }), "hit 429");
+    assert.equal(leaveReason(true, { wk: 100, fh: 100 }, 95), "hit 429");
   });
 
   it("wk=100 -> hit wk limit", () => {
-    assert.equal(leaveReason(false, { wk: 100, fh: 50 }), "hit wk limit");
+    assert.equal(leaveReason(false, { wk: 100, fh: 50 }, 95), "hit wk limit");
   });
 
   it("5h=100 -> hit 5h limit", () => {
-    assert.equal(leaveReason(false, { wk: 50, fh: 100 }), "hit 5h limit");
+    assert.equal(leaveReason(false, { wk: 50, fh: 100 }, 95), "hit 5h limit");
+  });
+
+  it("за порогом -> hit threshold", () => {
+    assert.equal(
+      leaveReason(false, { wk: 50, fh: 97 }, 95),
+      "hit 5h threshold",
+    );
+    assert.equal(
+      leaveReason(false, { wk: 97, fh: 50 }, 95),
+      "hit wk threshold",
+    );
   });
 
   it("нет данных -> no quota data", () => {
-    assert.equal(leaveReason(false, undefined), "no quota data");
-    assert.equal(leaveReason(false, { wk: 50 }), "no quota data");
-    assert.equal(leaveReason(false, { fh: 50 }), "no quota data");
+    assert.equal(leaveReason(false, undefined, 95), "no quota data");
+    assert.equal(leaveReason(false, { wk: 50 }, 95), "no quota data");
+    assert.equal(leaveReason(false, { fh: 50 }, 95), "no quota data");
   });
 
   it("здоров, но не первый в порядке -> priority", () => {
-    assert.equal(leaveReason(false, { wk: 70, fh: 50 }), "priority");
-    assert.equal(leaveReason(false, { wk: 31, fh: 40 }), "priority");
+    assert.equal(leaveReason(false, { wk: 70, fh: 50 }, 95), "priority");
+    assert.equal(leaveReason(false, { wk: 31, fh: 40 }, 95), "priority");
   });
 });

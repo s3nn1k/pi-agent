@@ -27,6 +27,7 @@ import {
   type ProviderMetrics,
   type SelectionInput,
 } from "./selection";
+import { isUsageLimitStreamError } from "./stream-errors";
 
 // TODO(model-router): заменить ThinkingLevelValue на настоящий тип ThinkingLevel из
 // @earendil-works/pi-ai, когда пакет станет прямой зависимостью (сейчас
@@ -35,14 +36,18 @@ type ThinkingLevelValue =
   "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
 
 const VIRTUAL_PROVIDER = "router";
+const VIRTUAL_MODEL_API_ID = "pi-virtual";
 const ROUTE_STALE_MS = 60_000;
 const ROUTE_FETCH_TIMEOUT_MS = 3_000;
 const BREAKER_FALLBACK_MS = 15 * 60_000;
+const SQUEEZE_NOTIFY_INTERVAL_MS = 5 * 60_000;
+const DEFAULT_EXHAUSTED_THRESHOLD_PERCENT = 95;
 
 interface RouterConfig {
   providerPriority: string[];
   tiers: Record<string, Record<string, string>>;
   forceBroken: Record<string, number>;
+  exhaustedThresholdPercent: number;
 }
 
 function notify(
@@ -57,6 +62,19 @@ function notify(
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function openBreakerFromQuotaWindows(providerId: string): void {
+  const entry = getQuotaEntry(providerId);
+  const resets = (entry?.snapshot.windows ?? [])
+    .map((window) => window.resetAtMs)
+    .filter(
+      (reset): reset is number => reset !== undefined && reset > Date.now(),
+    );
+  markProviderBroken(
+    providerId,
+    resets.length > 0 ? Math.min(...resets) : Date.now() + BREAKER_FALLBACK_MS,
+  );
 }
 
 function parseConfig(raw: unknown, source: string): RouterConfig {
@@ -114,10 +132,23 @@ function parseConfig(raw: unknown, source: string): RouterConfig {
     }
     forceBroken[provider] = minutes;
   }
+  const thresholdRaw =
+    record.exhaustedThresholdPercent ?? DEFAULT_EXHAUSTED_THRESHOLD_PERCENT;
+  if (
+    typeof thresholdRaw !== "number" ||
+    !Number.isInteger(thresholdRaw) ||
+    thresholdRaw < 80 ||
+    thresholdRaw > 100
+  ) {
+    throw new Error(
+      `${source}: exhaustedThresholdPercent must be an integer between 80 and 100`,
+    );
+  }
   return {
     providerPriority: record.providerPriority as string[],
     tiers,
     forceBroken,
+    exhaustedThresholdPercent: thresholdRaw,
   };
 }
 
@@ -177,6 +208,7 @@ export default function (pi: ExtensionAPI) {
 
   let refreshAbort: AbortController | undefined;
   let pendingRequestProvider: string | undefined;
+  let lastSqueezeNotifyAtMs = 0;
 
   async function validateConfig(ctx: ExtensionContext): Promise<void> {
     if (!routerConfig) return;
@@ -238,6 +270,7 @@ export default function (pi: ExtensionAPI) {
       quotas,
       brokenProviders,
       tier,
+      threshold: routerConfig!.exhaustedThresholdPercent,
     };
   }
 
@@ -302,8 +335,20 @@ export default function (pi: ExtensionAPI) {
               `model-router: switched ${previous} -> ${result.decision.provider} (${leaveReason(
                 input.brokenProviders.has(previous),
                 input.quotas[previous],
+                routerConfig.exhaustedThresholdPercent,
               )})`,
               "info",
+            );
+          }
+          if (
+            result.decision.pass === 4 &&
+            Date.now() - lastSqueezeNotifyAtMs > SQUEEZE_NOTIFY_INTERVAL_MS
+          ) {
+            lastSqueezeNotifyAtMs = Date.now();
+            notify(
+              ctx,
+              `model-router: squeeze ${result.decision.provider} (wk ${result.decision.wk}%, 5h ${result.decision.fh}%) - все кандидаты за порогом ${routerConfig.exhaustedThresholdPercent}%`,
+              "warning",
             );
           }
           return toModelRoute(result.decision, request, ctx);
@@ -366,22 +411,37 @@ export default function (pi: ExtensionAPI) {
     const providerId = pendingRequestProvider ?? ctx.model?.provider;
     if (!providerId) return;
     pendingRequestProvider = undefined;
-    const entry = getQuotaEntry(providerId);
-    const resets = (entry?.snapshot.windows ?? [])
-      .map((window) => window.resetAtMs)
-      .filter(
-        (reset): reset is number => reset !== undefined && reset > Date.now(),
-      );
-    markProviderBroken(
-      providerId,
-      resets.length > 0
-        ? Math.min(...resets)
-        : Date.now() + BREAKER_FALLBACK_MS,
-    );
+    openBreakerFromQuotaWindows(providerId);
     void refreshQuotas(ctx, refreshAbort?.signal, {
       maxAgeMs: 0,
       keepOnError: true,
     }).catch(() => {});
+  });
+
+  pi.on("provider_stream_event", async (event, ctx) => {
+    if (!routerConfig) return;
+    if (!routerConfig.providerPriority.includes(event.provider)) return;
+    if (!isUsageLimitStreamError(event.data)) return;
+    openBreakerFromQuotaWindows(event.provider);
+    void refreshQuotas(ctx, refreshAbort?.signal, {
+      maxAgeMs: 0,
+      keepOnError: true,
+    }).catch(() => {});
+    if (ctx.model?.api === VIRTUAL_MODEL_API_ID) {
+      notify(
+        ctx,
+        `model-router: ${event.provider} исчерпан (usage limit), повторный запрос уйдёт на живого провайдера`,
+        "warning",
+      );
+      return;
+    }
+    if (ctx.model?.provider === event.provider) {
+      notify(
+        ctx,
+        `model-router: ${event.provider} исчерпан; сессия на прямой модели - /model -> Router frontier`,
+        "warning",
+      );
+    }
   });
 
   pi.on("session_shutdown", () => {
