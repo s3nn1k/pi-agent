@@ -289,21 +289,51 @@ describe("selectProvider", () => {
 });
 
 describe("keepStickyProvider", () => {
-  it("продолжение и retry держат провайдера прошлого запроса", () => {
+  it("продолжение, retry и direct держат здорового провайдера", () => {
     const broken = new Set<string>();
-    assert.equal(keepStickyProvider("continuation", "zai", broken), true);
-    assert.equal(keepStickyProvider("retry", "zai", broken), true);
+    for (const reason of ["continuation", "retry", "direct"] as const) {
+      assert.equal(
+        keepStickyProvider(reason, "zai", broken, { wk: 50, fh: 50 }),
+        true,
+      );
+    }
     assert.equal(keepStickyProvider("direct", "zai", broken), true);
+    assert.equal(
+      keepStickyProvider("continuation", "zai", broken, { wk: 95, fh: 95 }),
+      true,
+    );
   });
 
-  it("user-запрос и сломанный провайдер не держат", () => {
-    assert.equal(keepStickyProvider("user", "zai", new Set()), false);
+  it("исчерпанное wk или 5h отключает sticky для всех не-user причин", () => {
+    for (const reason of ["continuation", "retry", "direct"] as const) {
+      assert.equal(
+        keepStickyProvider(reason, "zai", new Set(), { wk: 100, fh: 50 }),
+        false,
+      );
+      assert.equal(
+        keepStickyProvider(reason, "zai", new Set(), { wk: 50, fh: 100 }),
+        false,
+      );
+    }
+  });
+
+  it("user-запрос, сломанный провайдер и неизвестный провайдер не держат", () => {
     assert.equal(
-      keepStickyProvider("continuation", "zai", new Set(["zai"])),
+      keepStickyProvider("user", "zai", new Set(), { wk: 10, fh: 10 }),
       false,
     );
     assert.equal(
-      keepStickyProvider("continuation", undefined, new Set()),
+      keepStickyProvider("continuation", "zai", new Set(["zai"]), {
+        wk: 10,
+        fh: 10,
+      }),
+      false,
+    );
+    assert.equal(
+      keepStickyProvider("continuation", undefined, new Set(), {
+        wk: 10,
+        fh: 10,
+      }),
       false,
     );
   });

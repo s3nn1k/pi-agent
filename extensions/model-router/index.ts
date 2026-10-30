@@ -27,7 +27,7 @@ import {
   type ProviderMetrics,
   type SelectionInput,
 } from "./selection";
-import { isUsageLimitStreamError } from "./stream-errors";
+import { isUsageLimitError, isUsageLimitStreamError } from "./stream-errors";
 
 // TODO(model-router): заменить ThinkingLevelValue на настоящий тип ThinkingLevel из
 // @earendil-works/pi-ai, когда пакет станет прямой зависимостью (сейчас
@@ -48,6 +48,18 @@ interface RouterConfig {
   tiers: Record<string, Record<string, string>>;
   forceBroken: Record<string, number>;
   exhaustedThresholdPercent: number;
+}
+
+interface CompactionAttempt {
+  selectedModelProvider?: string;
+  selectedModelId?: string;
+  provider?: string;
+}
+
+interface CompactionFailure {
+  errorMessage?: string;
+  aborted: boolean;
+  fromExtension: boolean;
 }
 
 function notify(
@@ -189,6 +201,21 @@ function exhaustedText(exhausted: ExhaustedProvider[]): string {
   return exhausted.map((e) => `${e.provider}: ${e.reason}`).join(", ");
 }
 
+function compactionFailureProvider(
+  attempt: CompactionAttempt | undefined,
+  failure: CompactionFailure,
+): string | undefined {
+  if (
+    attempt?.provider === undefined ||
+    failure.aborted ||
+    failure.fromExtension ||
+    failure.errorMessage === undefined
+  ) {
+    return undefined;
+  }
+  return isUsageLimitError(failure.errorMessage) ? attempt.provider : undefined;
+}
+
 export default function (pi: ExtensionAPI) {
   let routerConfig: RouterConfig | undefined;
   try {
@@ -207,7 +234,9 @@ export default function (pi: ExtensionAPI) {
   }
 
   let refreshAbort: AbortController | undefined;
+  let nextRequestProvider: string | undefined;
   let pendingRequestProvider: string | undefined;
+  let compactionAttempt: CompactionAttempt | undefined;
   let lastSqueezeNotifyAtMs = 0;
 
   async function validateConfig(ctx: ExtensionContext): Promise<void> {
@@ -285,11 +314,27 @@ export default function (pi: ExtensionAPI) {
         `model-router: ${decision.modelString} пропала из реестра`,
       );
     }
+    recordRoutedProvider(request, model.provider);
     return {
       model,
       thinkingLevel: (decision.thinking ??
         request.thinkingLevel) as ThinkingLevelValue,
     };
+  }
+
+  function recordRoutedProvider(
+    request: ModelRouteRequest<unknown>,
+    provider: string,
+  ): void {
+    nextRequestProvider = provider;
+    if (
+      compactionAttempt &&
+      request.reason === "direct" &&
+      compactionAttempt.selectedModelProvider === request.model.provider &&
+      compactionAttempt.selectedModelId === request.model.id
+    ) {
+      compactionAttempt.provider = provider;
+    }
   }
 
   function registerTier(
@@ -318,8 +363,10 @@ export default function (pi: ExtensionAPI) {
             request.reason,
             sticky.model.provider,
             input.brokenProviders,
+            input.quotas[sticky.model.provider],
           )
         ) {
+          recordRoutedProvider(request, sticky.model.provider);
           return {
             model: sticky.model,
             thinkingLevel: (sticky.thinkingLevel ??
@@ -360,6 +407,7 @@ export default function (pi: ExtensionAPI) {
             ? ctx.modelRegistry.find(blind, candidate.model)
             : undefined;
           if (candidate && model) {
+            recordRoutedProvider(request, model.provider);
             return {
               model,
               thinkingLevel: (candidate.thinking ??
@@ -380,7 +428,45 @@ export default function (pi: ExtensionAPI) {
     }
   }
 
+  pi.on("session_before_compact", (_event, ctx) => {
+    const selectedModel = ctx.model;
+    compactionAttempt = selectedModel
+      ? {
+          selectedModelProvider: selectedModel.provider,
+          selectedModelId: selectedModel.id,
+          ...(selectedModel.api !== VIRTUAL_MODEL_API_ID
+            ? { provider: selectedModel.provider }
+            : {}),
+        }
+      : {};
+  });
+
+  pi.on("session_compact", () => {
+    compactionAttempt = undefined;
+  });
+
+  pi.on("session_compact_failed", (event, ctx) => {
+    const provider = compactionFailureProvider(compactionAttempt, event);
+    compactionAttempt = undefined;
+    if (provider === undefined) return;
+    openBreakerFromQuotaWindows(provider);
+    void refreshQuotas(ctx, refreshAbort?.signal, {
+      maxAgeMs: 0,
+      keepOnError: true,
+    }).catch((error) => {
+      console.error(
+        `model-router: quota refresh after compaction failure failed: ${errorMessage(error)}`,
+      );
+    });
+    notify(
+      ctx,
+      `model-router: ${provider} исчерпан при compaction; повторите /compact, чтобы выбрать доступного провайдера`,
+      "warning",
+    );
+  });
+
   pi.on("session_start", async (_event, ctx) => {
+    compactionAttempt = undefined;
     refreshAbort = new AbortController();
     if (!routerConfig) return;
     const forced = Object.entries(routerConfig.forceBroken);
@@ -403,14 +489,18 @@ export default function (pi: ExtensionAPI) {
   });
 
   pi.on("before_provider_request", (_event, ctx) => {
-    pendingRequestProvider = ctx.model?.provider;
+    pendingRequestProvider =
+      ctx.model?.api === VIRTUAL_MODEL_API_ID
+        ? nextRequestProvider
+        : ctx.model?.provider;
+    nextRequestProvider = undefined;
   });
 
   pi.on("after_provider_response", (event, ctx) => {
     if (!routerConfig || event.status !== 429) return;
-    const providerId = pendingRequestProvider ?? ctx.model?.provider;
-    if (!providerId) return;
+    const providerId = pendingRequestProvider;
     pendingRequestProvider = undefined;
+    if (!providerId || providerId === VIRTUAL_PROVIDER) return;
     openBreakerFromQuotaWindows(providerId);
     void refreshQuotas(ctx, refreshAbort?.signal, {
       maxAgeMs: 0,
@@ -427,6 +517,7 @@ export default function (pi: ExtensionAPI) {
       maxAgeMs: 0,
       keepOnError: true,
     }).catch(() => {});
+    if (compactionAttempt) return;
     if (ctx.model?.api === VIRTUAL_MODEL_API_ID) {
       notify(
         ctx,
@@ -445,6 +536,9 @@ export default function (pi: ExtensionAPI) {
   });
 
   pi.on("session_shutdown", () => {
+    compactionAttempt = undefined;
+    nextRequestProvider = undefined;
+    pendingRequestProvider = undefined;
     refreshAbort?.abort();
     refreshAbort = undefined;
   });

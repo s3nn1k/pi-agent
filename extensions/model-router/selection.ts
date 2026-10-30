@@ -58,11 +58,14 @@ export function keepStickyProvider(
   reason: RouteReason,
   stickyProvider: string | undefined,
   brokenProviders: ReadonlySet<string>,
+  metrics?: ProviderMetrics,
 ): boolean {
   return (
     reason !== "user" &&
     stickyProvider !== undefined &&
-    !brokenProviders.has(stickyProvider)
+    !brokenProviders.has(stickyProvider) &&
+    metrics?.wk !== 100 &&
+    metrics?.fh !== 100
   );
 }
 

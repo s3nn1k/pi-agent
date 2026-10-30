@@ -1,6 +1,19 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { isUsageLimitStreamError } from "./stream-errors.ts";
+import { isUsageLimitError, isUsageLimitStreamError } from "./stream-errors.ts";
+
+describe("isUsageLimitError", () => {
+  it("распознаёт текст ошибки компакции", () => {
+    assert.equal(
+      isUsageLimitError("Compaction failed: usage limit has been reached"),
+      true,
+    );
+    assert.equal(
+      isUsageLimitError("Compaction failed: rate limit exceeded"),
+      false,
+    );
+  });
+});
 
 describe("isUsageLimitStreamError", () => {
   it("код usage_limit_reached", () => {
