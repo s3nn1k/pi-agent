@@ -9,6 +9,9 @@
   "tui.editor.cursorLineEnd": [],
   "tui.editor.pageUp": [],
   "tui.editor.pageDown": [],
+  "tui.editor.jumpForward": [],
+  "tui.editor.jumpBackward": [],
+  "tui.editor.deleteCharForward": "delete",
   "tui.editor.deleteWordBackward": [],
   "tui.editor.deleteWordForward": [],
   "tui.editor.deleteToLineStart": [],
@@ -18,12 +21,15 @@
   "tui.editor.undo": [],
 
   "tui.input.newLine": "shift+enter",
+  "tui.input.copy": [],
 
   "tui.select.pageUp": [],
   "tui.select.pageDown": [],
 
   "tui.altScreen.pageUp": ["ctrl+k", "ctrl+up"],
   "tui.altScreen.pageDown": ["ctrl+j", "ctrl+down"],
+  "tui.altScreen.halfPageUp": "ctrl+u",
+  "tui.altScreen.halfPageDown": "ctrl+d",
   "tui.altScreen.previousPrompt": ["ctrl+shift+up", "ctrl+shift+k"],
   "tui.altScreen.nextPrompt": ["ctrl+shift+down", "ctrl+shift+j"],
   "tui.altScreen.search": "ctrl+f",
@@ -32,10 +38,14 @@
   "tui.altScreen.top": [],
   "tui.altScreen.bottom": [],
 
+  "app.session.new": "ctrl+n",
+  "app.session.tree": "ctrl+t",
+  "app.session.resume": "ctrl+r",
   "app.session.togglePath": [],
   "app.session.toggleSort": [],
   "app.session.toggleNamedFilter": [],
   "app.session.rename": [],
+  "app.session.delete": [],
   "app.session.deleteNoninvasive": [],
 
   "app.model.cycleForward": [],
@@ -44,16 +54,21 @@
   "app.models.enableAll": [],
   "app.models.clearAll": [],
   "app.models.toggleProvider": [],
+  "app.models.reorderUp": [],
+  "app.models.reorderDown": [],
 
   "app.thinking.cycle": [],
   "app.thinking.toggle": [],
   "app.thinking.save": [],
 
+  "app.message.copy": [],
   "app.message.followUp": [],
   "app.message.dequeue": [],
 
   "app.tree.foldOrUp": "left",
   "app.tree.unfoldOrDown": "right",
+  "app.tree.editLabel": [],
+  "app.tree.toggleLabelTimestamp": [],
   "app.tree.filter.default": [],
   "app.tree.filter.noTools": [],
   "app.tree.filter.userOnly": [],
