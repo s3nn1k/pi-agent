@@ -39,7 +39,6 @@
   "tui.altScreen.bottom": [],
 
   "app.session.new": "ctrl+n",
-  "app.session.tree": "ctrl+t",
   "app.session.resume": "ctrl+r",
   "app.session.togglePath": [],
   "app.session.toggleSort": [],
@@ -58,7 +57,7 @@
   "app.models.reorderDown": [],
 
   "app.thinking.cycle": [],
-  "app.thinking.toggle": [],
+  "app.thinking.toggle": "ctrl+t",
   "app.thinking.save": [],
 
   "app.message.copy": [],
