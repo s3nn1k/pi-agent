@@ -1,0 +1,64 @@
+{
+  "$schema": "https://pi.dev/schemas/keybindings.schema.json",
+
+  "tui.editor.cursorLeft": "left",
+  "tui.editor.cursorRight": "right",
+  "tui.editor.cursorWordLeft": [],
+  "tui.editor.cursorWordRight": [],
+  "tui.editor.cursorLineStart": [],
+  "tui.editor.cursorLineEnd": [],
+  "tui.editor.pageUp": [],
+  "tui.editor.pageDown": [],
+  "tui.editor.deleteWordBackward": [],
+  "tui.editor.deleteWordForward": [],
+  "tui.editor.deleteToLineStart": [],
+  "tui.editor.deleteToLineEnd": [],
+  "tui.editor.yank": [],
+  "tui.editor.yankPop": [],
+  "tui.editor.undo": [],
+
+  "tui.input.newLine": "shift+enter",
+
+  "tui.select.pageUp": [],
+  "tui.select.pageDown": [],
+
+  "tui.altScreen.pageUp": ["ctrl+k", "ctrl+up"],
+  "tui.altScreen.pageDown": ["ctrl+j", "ctrl+down"],
+  "tui.altScreen.previousPrompt": ["ctrl+shift+up", "ctrl+shift+k"],
+  "tui.altScreen.nextPrompt": ["ctrl+shift+down", "ctrl+shift+j"],
+  "tui.altScreen.search": "ctrl+f",
+  "tui.altScreen.searchNext": "ctrl+g",
+  "tui.altScreen.searchPrevious": "ctrl+shift+g",
+  "tui.altScreen.top": [],
+  "tui.altScreen.bottom": [],
+
+  "app.session.togglePath": [],
+  "app.session.toggleSort": [],
+  "app.session.toggleNamedFilter": [],
+  "app.session.rename": [],
+  "app.session.deleteNoninvasive": [],
+
+  "app.model.cycleForward": [],
+  "app.model.cycleBackward": [],
+  "app.models.save": [],
+  "app.models.enableAll": [],
+  "app.models.clearAll": [],
+  "app.models.toggleProvider": [],
+
+  "app.thinking.cycle": [],
+  "app.thinking.toggle": [],
+  "app.thinking.save": [],
+
+  "app.message.followUp": [],
+  "app.message.dequeue": [],
+
+  "app.tree.foldOrUp": "left",
+  "app.tree.unfoldOrDown": "right",
+  "app.tree.filter.default": [],
+  "app.tree.filter.noTools": [],
+  "app.tree.filter.userOnly": [],
+  "app.tree.filter.labeledOnly": [],
+  "app.tree.filter.all": [],
+  "app.tree.filter.cycleForward": [],
+  "app.tree.filter.cycleBackward": []
+}
