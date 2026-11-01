@@ -200,8 +200,20 @@ function baseFooterLines(
   const sessionName = ctx.sessionManager.getSessionName();
   if (sessionName) cwd += ` • ${sessionName}`;
 
+  const statuses = Array.from(footerData.getExtensionStatuses().entries())
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([, text]) => sanitizeStatusText(text))
+    .filter((text) => text.length > 0);
+  const containerized = existsSync("/.dockerenv");
+  const environment = containerized ? "docker" : "host";
+  const firstLine =
+    theme.fg(
+      "dim",
+      [cwd, ...statuses, environment].slice(0, -1).join(" | ") + " | ",
+    ) + theme.fg(containerized ? "success" : "error", environment);
+
   const lines = [
-    truncateToWidth(theme.fg("dim", cwd), width, theme.fg("dim", "...")),
+    truncateToWidth(firstLine, width, theme.fg("dim", "...")),
     statsLine(
       ctx,
       footerData,
@@ -211,14 +223,6 @@ function baseFooterLines(
       getThinkingLevel,
     ),
   ];
-  const statuses = Array.from(footerData.getExtensionStatuses().entries())
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([, text]) => sanitizeStatusText(text));
-  if (statuses.length > 0) {
-    lines.push(
-      truncateToWidth(statuses.join(" "), width, theme.fg("dim", "...")),
-    );
-  }
   return lines;
 }
 
@@ -235,10 +239,14 @@ export function createUsageFooter(
   const unsubscribe = footerData.onBranchChange(() => tui.requestRender());
   return {
     render(width: number): string[] {
-      const quota = quotaLines().map((line) =>
-        truncateToWidth(line, width, theme.fg("dim", "...")),
-      );
-      const lines = [
+      const quotaRows = quotaLines();
+      const quota =
+        quotaRows.length > 1 && visibleWidth(quotaRows.join(" ")) <= width
+          ? [quotaRows.join(" ")]
+          : quotaRows.map((line) =>
+              truncateToWidth(line, width, theme.fg("dim", "...")),
+            );
+      return [
         ...baseFooterLines(
           ctx,
           footerData,
@@ -249,12 +257,6 @@ export function createUsageFooter(
         ),
         ...quota,
       ];
-      const containerized = existsSync("/.dockerenv");
-      lines.push(
-        theme.fg("dim", "containerized: ") +
-          theme.fg(containerized ? "success" : "error", String(containerized)),
-      );
-      return lines;
     },
     invalidate(): void {},
     dispose(): void {

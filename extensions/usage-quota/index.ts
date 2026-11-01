@@ -61,32 +61,28 @@ export default function (pi: ExtensionAPI) {
     for (const { provider, entry } of providers) {
       const fg = (color: "dim" | "muted" | "warning" | "error", text: string) =>
         theme.fg(entry.error ? "dim" : color, text);
-      const sep = theme.fg("dim", " | ");
+      const now = Date.now();
+      const providerLabel = `[${provider.id[0]}]`;
       const cells = entry.snapshot.windows.map((window) => {
         const reset =
-          window.resetAtMs !== undefined && window.resetAtMs > Date.now()
-            ? ` ${theme.fg(
-                "dim",
-                `(res ${formatResetDateTime(window.resetAtMs)})`,
-              )}`
+          window.resetAtMs !== undefined && window.resetAtMs > now
+            ? theme.fg("dim", `(${formatResetDateTime(window.resetAtMs, now)})`)
             : "";
-        return `${fg("muted", window.label)} ${fg(
+        const roundedPercent = Math.round(window.usedPercent);
+        const value = roundedPercent === 100 ? "f" : String(roundedPercent);
+        return `${fg("muted", window.label)}:${fg(
           severity(window.label, window.usedPercent),
-          `${Math.round(window.usedPercent)}%`,
+          value,
         )}${reset}`;
       });
-      let line = fg("dim", provider.id);
-      if (cells.length > 0) line += sep + cells.join(sep);
-      const peak = provider.getPeakState?.(Date.now());
+      let line = fg("dim", providerLabel);
+      if (cells.length > 0) line += ` ${cells.join(" ")}`;
+      const peak = provider.getPeakState?.(now);
       if (peak?.active && peak.endsInMs !== undefined && peak.rate) {
-        line +=
-          sep +
-          theme.fg(
-            "error",
-            `⚡ ${peak.rate} (ends ${formatResetDateTime(
-              Date.now() + peak.endsInMs,
-            )})`,
-          );
+        line += ` ${fg(
+          "error",
+          `${peak.rate}(${formatResetDateTime(now + peak.endsInMs, now)})`,
+        )}`;
       }
       lines.push(line);
     }

@@ -4,7 +4,6 @@ import {
   getAgentDir,
   type ExtensionAPI,
 } from "@earendil-works/pi-coding-agent";
-import { Text } from "@earendil-works/pi-tui";
 
 const AGENT_DIR = resolve(getAgentDir());
 const CONTEXT_REGION_REGEX = /<project_context>[\s\S]*<\/project_context>/g;
@@ -84,20 +83,11 @@ export default function (pi: ExtensionAPI) {
   pi.on("session_start", (_event, ctx) => {
     if (!ctx.hasUI) return;
     const insideRepo = isWithin(resolve(ctx.cwd), AGENT_DIR);
-    ctx.ui.setWidget(
-      "scope-agents-md",
-      insideRepo
-        ? undefined
-        : (_tui, theme) => new Text(theme.fg("dim", "ctx: agent-only"), 0, 0),
-      { placement: "belowEditor" },
-    );
+    ctx.ui.setStatus("scope-agents-md", insideRepo ? undefined : "agent-only");
   });
 
   pi.on("session_shutdown", (_event, ctx) => {
-    if (ctx.hasUI)
-      ctx.ui.setWidget("scope-agents-md", undefined, {
-        placement: "belowEditor",
-      });
+    if (ctx.hasUI) ctx.ui.setStatus("scope-agents-md", undefined);
   });
 }
 

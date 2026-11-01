@@ -23,7 +23,5 @@ export function formatResetDateTime(ms: number, now = Date.now()): string {
     d.getFullYear() === nowD.getFullYear() &&
     d.getMonth() === nowD.getMonth() &&
     d.getDate() === nowD.getDate();
-  return sameDay
-    ? clock
-    : `${pad(d.getDate())}.${pad(d.getMonth() + 1)} ${clock}`;
+  return sameDay ? clock : `${pad(d.getDate())}.${pad(d.getMonth() + 1)}`;
 }
