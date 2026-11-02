@@ -29,8 +29,8 @@
     }
   ],
   "skills": [
-    "~/projects/engineering-standards/agents/skills/go-standards",
-    "~/projects/engineering-standards/agents/skills/go-integrations-tests"
+    "~/projects/work/engineering-standards/agents/skills/go-standards",
+    "~/projects/work/engineering-standards/agents/skills/go-integrations-tests"
   ],
   "quietStartup": false,
   "tuiMode": "fullscreen",
