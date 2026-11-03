@@ -85,6 +85,46 @@ describe("workflow source folding", () => {
     }
   });
 });
+describe("untagged workflow script folding", () => {
+  const plainBlock = (body: string) => OPEN + "js\n" + body + "\n" + OPEN;
+  it("folds a lone untagged js block that launches runs", () => {
+    const source = [
+      "intro",
+      plainBlock('const run = await runs.run("key", { agent: "worker" });'),
+      "tail",
+    ].join("\n");
+    const folded = foldWorkflowMarkdown(source, false);
+    assert.match(folded, /intro\nWorkflow call · 1 line[^\n]*\ntail/);
+    assert.doesNotMatch(folded, /runs\.run/);
+  });
+  it("keeps ordinary snippets and ambiguous untagged blocks unfolded", () => {
+    const snippet = plainBlock("console.log(42);");
+    assert.equal(foldWorkflowMarkdown(snippet, false), snippet);
+    const bothScripted = [
+      plainBlock('runs.run("a");'),
+      plainBlock('runs.run("b");'),
+    ].join("\n");
+    assert.equal(foldWorkflowMarkdown(bothScripted, false), bothScripted);
+    const scriptedAndSnippet = [
+      plainBlock('runs.all([{ agent: "a" }]);'),
+      plainBlock("console.log(42);"),
+    ].join("\n");
+    assert.equal(
+      foldWorkflowMarkdown(scriptedAndSnippet, false),
+      scriptedAndSnippet,
+    );
+  });
+  it("prefers tagged blocks when both kinds appear", () => {
+    const source = [
+      block("js", "tagged();"),
+      plainBlock('runs.run("a");'),
+    ].join("\n");
+    const folded = foldWorkflowMarkdown(source, false);
+    assert.equal((folded.match(/Workflow call/g) ?? []).length, 1);
+    assert.match(folded, /runs\.run\("a"\);/);
+    assert.doesNotMatch(folded, /tagged\(\);/);
+  });
+});
 describe("actual assistant Markdown rendering", () => {
   it("invalidates cached Markdown for streaming, expansion, collapse, and restore", () => {
     let expanded = false;

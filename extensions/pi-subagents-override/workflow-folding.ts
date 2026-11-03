@@ -6,13 +6,16 @@ import {
 import { Marked } from "@earendil-works/pi-tui";
 type WorkflowSpan = [startLine: number, closingLine: number, lineCount: number];
 
-const MARKDOWN = new Marked();
-const WORKFLOW_OPEN = /^\`\`\`(?:js|javascript) workflow[ \t]*$/;
-const CLOSE_FENCE = /^ {0,3}(\`{3,})[ \t]*$/;
+const MARKED = new Marked();
+const WORKFLOW_OPEN = /^```(?:js|javascript) workflow[ 	]*$/;
+const PLAIN_JS_OPEN = /^```(?:js|javascript)[ 	]*$/;
+const WORKFLOW_SCRIPT_BODY = /\bruns\.(?:run|all|host)\s*\(/;
+const CLOSE_FENCE = /^ {0,3}(`{3,})[ 	]*$/;
 function workflowSpans(markdown: string): WorkflowSpan[] {
   const normalized = markdown.replace(/\r\n?/g, "\n");
-  const tokens = MARKDOWN.lexer(normalized);
-  const spans: WorkflowSpan[] = [];
+  const tokens = MARKED.lexer(normalized);
+  const tagged: WorkflowSpan[] = [];
+  const plain: { span: WorkflowSpan; body: string }[] = [];
   let cursor = 0;
   let line = 0;
   for (const token of tokens) {
@@ -24,17 +27,29 @@ function workflowSpans(markdown: string): WorkflowSpan[] {
     if (token.type !== "code") continue;
     const closingLineText =
       rawLines.at(token.raw.endsWith("\n") ? -2 : -1) ?? "";
-    if (
-      !WORKFLOW_OPEN.test(rawLines[0] ?? "") ||
-      !CLOSE_FENCE.test(closingLineText)
-    ) {
-      continue;
-    }
+    const openingLineText = rawLines[0] ?? "";
+    if (!CLOSE_FENCE.test(closingLineText)) continue;
     const closingLine =
       startLine + rawLines.length - 1 - (token.raw.endsWith("\n") ? 1 : 0);
-    spans.push([startLine, closingLine, closingLine - startLine - 1]);
+    const span: WorkflowSpan = [
+      startLine,
+      closingLine,
+      closingLine - startLine - 1,
+    ];
+    if (WORKFLOW_OPEN.test(openingLineText)) {
+      tagged.push(span);
+    } else if (PLAIN_JS_OPEN.test(openingLineText)) {
+      const body =
+        "text" in token && typeof token.text === "string" ? token.text : "";
+      plain.push({ span, body });
+    }
   }
-  return cursor === normalized.length ? spans : [];
+  if (cursor !== normalized.length) return [];
+  if (tagged.length > 0) return tagged;
+  const lonePlain = plain.length === 1 ? plain[0] : undefined;
+  return lonePlain && WORKFLOW_SCRIPT_BODY.test(lonePlain.body)
+    ? [lonePlain.span]
+    : [];
 }
 const workflowRow = (lineCount: number): string => {
   const key = keyText("app.tools.expand");
