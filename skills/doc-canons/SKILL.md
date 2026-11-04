@@ -17,7 +17,8 @@ description: |
 - **артефакты фичи** - общая структура и ссылки определены здесь; нормы вида:
   - `doc.md` - итоговая спецификация (поведение, контракты, инварианты) -
     `references/research-doc.md`;
-  - `compact.md` - выжимка для человека - `references/compact-doc.md`;
+  - `compact.md` - выжимка для человека: контекст, решения, риски, задачи (MR) -
+    `references/compact-doc.md`;
   - `plan.md` - согласованный план доставки - `references/implementation-plan.md`;
   - `tests.md` - спецификация покрытия фичи - `references/test-cases.md`;
 - **сообщение в канал product** - анонс фичи по тех. проработке -
