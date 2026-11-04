@@ -3,6 +3,7 @@ import { mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
+import type { QuotaWarmup } from "../lib/quota/types";
 import {
   isWindowPinged,
   loadState,
@@ -19,9 +20,15 @@ import {
 const NOW = 1_000_000_000_000;
 const HOUR = 3_600_000;
 
-const window = (resetAtMs?: number, label = "5h"): PingWindow => ({
+const warmup: QuotaWarmup = { windowLabel: "5h", ceilingLabels: ["wk"] };
+
+const window = (
+  resetAtMs?: number,
+  label = "5h",
+  usedPercent = 0,
+): PingWindow => ({
   label,
-  usedPercent: 0,
+  usedPercent,
   ...(resetAtMs === undefined ? {} : { resetAtMs }),
 });
 
@@ -38,30 +45,82 @@ const model = (
 
 describe("needsPing", () => {
   it("окно с будущим reset → не спит", () => {
-    assert.equal(needsPing([window(NOW + 1000)], NOW), false);
+    assert.equal(needsPing([window(NOW + 1000)], warmup, NOW), false);
   });
 
   it("окно с прошлым reset → спит", () => {
-    assert.equal(needsPing([window(NOW - 1000)], NOW), true);
+    assert.equal(needsPing([window(NOW - 1000)], warmup, NOW), true);
   });
 
   it("окно без resetAtMs → спит", () => {
-    assert.equal(needsPing([window()], NOW), true);
+    assert.equal(needsPing([window()], warmup, NOW), true);
   });
 
   it("пустой список окон → спит", () => {
-    assert.equal(needsPing([], NOW), true);
+    assert.equal(needsPing([], warmup, NOW), true);
   });
 
-  it("смешанный список: одно будущее окно блокирует пинг", () => {
+  it("спящий 5h без reset + живой wk → спит (wk не блокирует)", () => {
     assert.equal(
-      needsPing([window(NOW - 1000, "5h"), window(NOW + 60_000, "wk")], NOW),
+      needsPing(
+        [window(undefined, "5h"), window(NOW + 60_000, "wk")],
+        warmup,
+        NOW,
+      ),
+      true,
+    );
+  });
+
+  it("открытый 5h (reset в будущем) → не спит", () => {
+    assert.equal(
+      needsPing(
+        [window(NOW + 60_000, "5h"), window(NOW + 1000, "wk")],
+        warmup,
+        NOW,
+      ),
       false,
     );
   });
 
+  it("спящий 5h + wk исчерпан → не спит (нет запаса)", () => {
+    assert.equal(
+      needsPing(
+        [window(undefined, "5h"), window(NOW + 60_000, "wk", 100)],
+        warmup,
+        NOW,
+      ),
+      false,
+    );
+  });
+
+  it("спящий 5h сам исчерпан (без reset) → не спит", () => {
+    assert.equal(
+      needsPing(
+        [window(undefined, "5h", 100), window(NOW + 60_000, "wk")],
+        warmup,
+        NOW,
+      ),
+      false,
+    );
+  });
+
+  it("mcp исчерпан + спящий 5h + живой wk → спит (mcp не гейтит)", () => {
+    assert.equal(
+      needsPing(
+        [
+          window(NOW + 1000, "mcp", 100),
+          window(undefined, "5h"),
+          window(NOW + 60_000, "wk"),
+        ],
+        warmup,
+        NOW,
+      ),
+      true,
+    );
+  });
+
   it("resetAtMs ровно на now → не в будущем → спит", () => {
-    assert.equal(needsPing([window(NOW)], NOW), true);
+    assert.equal(needsPing([window(NOW)], warmup, NOW), true);
   });
 });
 
@@ -124,29 +183,65 @@ describe("reportLine", () => {
 });
 
 describe("windowKey / isWindowPinged", () => {
-  it("ключ = первый resetAtMs окна", () => {
-    assert.equal(windowKey([window(111), window(222)], NOW), 111);
+  it("ключ = reset именно 5h-окна, не wk", () => {
+    assert.equal(
+      windowKey([window(222, "wk"), window(111, "5h")], warmup, NOW),
+      111,
+    );
   });
 
-  it("без resetAtMs → fallback floor(now / час)", () => {
-    assert.equal(windowKey([], NOW), Math.floor(NOW / HOUR));
-    assert.equal(windowKey([window()], NOW), Math.floor(NOW / HOUR));
+  it("без 5h-окна → fallback floor(now / час)", () => {
+    assert.equal(windowKey([], warmup, NOW), Math.floor(NOW / HOUR));
+    assert.equal(
+      windowKey([window(NOW + 1000, "wk")], warmup, NOW),
+      Math.floor(NOW / HOUR),
+    );
   });
 
-  it("isWindowPinged: сохранённый ключ совпал с текущим → true", () => {
-    const saved = { windowKey: windowKey([], NOW), pingedAtMs: NOW };
-    assert.equal(isWindowPinged(saved, [], NOW), true);
+  it("5h без resetAtMs → fallback floor(now / час)", () => {
+    assert.equal(
+      windowKey([window(undefined, "5h")], warmup, NOW),
+      Math.floor(NOW / HOUR),
+    );
   });
 
-  it("isWindowPinged: сохранённый ключ = resetAtMs из снапшота → true", () => {
-    const saved = { windowKey: 555, pingedAtMs: NOW };
-    assert.equal(isWindowPinged(saved, [window(555)], NOW), true);
+  it("isWindowPinged: сохранённый ключ совпал → true", () => {
+    const windows = [window(555, "5h"), window(777, "wk")];
+    const saved = {
+      windowKey: windowKey(windows, warmup, NOW),
+      pingedAtMs: NOW,
+    };
+    assert.equal(isWindowPinged(saved, windows, warmup, NOW), true);
+  });
+
+  it("isWindowPinged: ключ wk-окна не засчитывается → false", () => {
+    const saved = { windowKey: 777, pingedAtMs: NOW };
+    assert.equal(
+      isWindowPinged(
+        saved,
+        [window(555, "5h"), window(777, "wk")],
+        warmup,
+        NOW,
+      ),
+      false,
+    );
   });
 
   it("isWindowPinged: окно сменилось → false", () => {
     const saved = { windowKey: 555, pingedAtMs: NOW };
-    assert.equal(isWindowPinged(saved, [window(777)], NOW), false);
-    assert.equal(isWindowPinged(undefined, [window(555)], NOW), false);
+    assert.equal(
+      isWindowPinged(
+        saved,
+        [window(777, "5h"), window(999, "wk")],
+        warmup,
+        NOW,
+      ),
+      false,
+    );
+    assert.equal(
+      isWindowPinged(undefined, [window(555, "5h")], warmup, NOW),
+      false,
+    );
   });
 });
 

@@ -17,8 +17,14 @@ export interface PeakState {
   endsInMs?: number;
 }
 
+export interface QuotaWarmup {
+  windowLabel: string;
+  ceilingLabels: readonly string[];
+}
+
 export interface QuotaProvider {
   id: string;
+  warmup?: QuotaWarmup;
   isActive(ctx: ExtensionContext): boolean;
   fetchQuota(
     signal: AbortSignal,

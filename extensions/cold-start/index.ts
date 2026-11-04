@@ -9,6 +9,7 @@ import {
   getQuotaEntry,
   refreshQuotas,
 } from "../lib/quota/cache";
+import type { QuotaProvider } from "../lib/quota/types";
 import {
   isWindowPinged,
   loadState,
@@ -86,10 +87,13 @@ async function pingModel(
 
 async function warmProvider(
   ctx: ExtensionContext,
-  providerId: string,
+  provider: QuotaProvider,
   state: ColdStartState,
   sessionSignal: AbortSignal,
 ): Promise<ProviderOutcome | undefined> {
+  const warmup = provider.warmup;
+  if (!warmup) return undefined;
+  const providerId = provider.id;
   const entry = getQuotaEntry(providerId);
   if (!entry) return undefined;
   const windows = entry.snapshot.windows;
@@ -97,8 +101,8 @@ async function warmProvider(
   const sleeping =
     entry.error !== undefined ||
     windows.length === 0 ||
-    needsPing(windows, now);
-  if (!sleeping || isWindowPinged(state[providerId], windows, now)) {
+    needsPing(windows, warmup, now);
+  if (!sleeping || isWindowPinged(state[providerId], windows, warmup, now)) {
     return undefined;
   }
 
@@ -116,7 +120,7 @@ async function warmProvider(
   await refreshQuotas(ctx, sessionSignal, { maxAgeMs: 0 });
   const freshWindows = getQuotaEntry(providerId)?.snapshot.windows ?? [];
   state[providerId] = {
-    windowKey: windowKey(freshWindows, Date.now()),
+    windowKey: windowKey(freshWindows, warmup, Date.now()),
     pingedAtMs: Date.now(),
   };
   await saveState(statePath(), state);
@@ -131,7 +135,7 @@ async function runWarmup(
   const state = await loadState(statePath());
   const outcome: WarmupOutcome = { warmed: [], errors: [] };
   for (const provider of getActiveQuotaProviders(ctx)) {
-    const result = await warmProvider(ctx, provider.id, state, sessionSignal);
+    const result = await warmProvider(ctx, provider, state, sessionSignal);
     if (!result) continue;
     if (result.kind === "warmed") {
       outcome.warmed.push(reportLine(provider.id, "warmed"));

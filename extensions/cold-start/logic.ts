@@ -1,4 +1,5 @@
 import { readFile, rename, writeFile } from "node:fs/promises";
+import type { QuotaWarmup } from "../lib/quota/types";
 
 export interface PingWindow {
   label: string;
@@ -17,10 +18,20 @@ const HOUR_MS = 3_600_000;
 
 export function needsPing(
   windows: readonly PingWindow[],
+  warmup: QuotaWarmup,
   nowMs: number,
 ): boolean {
+  const target = windows.find((window) => window.label === warmup.windowLabel);
+  if (
+    target !== undefined &&
+    target.resetAtMs !== undefined &&
+    target.resetAtMs > nowMs
+  ) {
+    return false;
+  }
+  const gatedLabels = new Set([warmup.windowLabel, ...warmup.ceilingLabels]);
   return !windows.some(
-    (window) => window.resetAtMs !== undefined && window.resetAtMs > nowMs,
+    (window) => gatedLabels.has(window.label) && window.usedPercent >= 100,
   );
 }
 
@@ -66,10 +77,11 @@ export function reportLine(providerId: string, status: string): string {
 
 export function windowKey(
   windows: readonly PingWindow[],
+  warmup: QuotaWarmup,
   nowMs: number,
 ): number | string {
   const resetAtMs = windows.find(
-    (window) => window.resetAtMs !== undefined,
+    (window) => window.label === warmup.windowLabel,
   )?.resetAtMs;
   return resetAtMs ?? Math.floor(nowMs / HOUR_MS);
 }
@@ -77,13 +89,11 @@ export function windowKey(
 export function isWindowPinged(
   saved: ColdStartWindowState | undefined,
   windows: readonly PingWindow[],
+  warmup: QuotaWarmup,
   nowMs: number,
 ): boolean {
-  if (!saved) return false;
-  if (saved.windowKey === windowKey(windows, nowMs)) return true;
-  return windows.some(
-    (window) =>
-      window.resetAtMs !== undefined && window.resetAtMs === saved.windowKey,
+  return (
+    saved !== undefined && saved.windowKey === windowKey(windows, warmup, nowMs)
   );
 }
 
