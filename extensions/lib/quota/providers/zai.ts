@@ -176,6 +176,7 @@ async function fetchQuota(
 
 export const zaiProvider: QuotaProvider = {
   id: PROVIDER_ID,
+  warmup: { windowLabel: "5h", ceilingLabels: ["wk"] },
   isActive,
   fetchQuota,
   getPeakState: peakState,
