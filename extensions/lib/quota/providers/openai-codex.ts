@@ -120,6 +120,7 @@ async function fetchQuota(
 
 export const openaiCodexProvider: QuotaProvider = {
   id: PROVIDER_ID,
+  warmup: { windowLabel: "5h", ceilingLabels: ["wk"] },
   isActive,
   fetchQuota,
 };
