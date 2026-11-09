@@ -43,6 +43,6 @@
     "app.editor.external": []
   },
   "extensionChangelogVersions": {
-    "{\"source\":\"npm:pi-subagents\",\"scope\":\"user\"}": "0.84.0"
+    "{\"source\":\"npm:pi-subagents\",\"scope\":\"user\"}": "0.86.0"
   }
 }
