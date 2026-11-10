@@ -12,8 +12,8 @@ const ZAI_USAGE = {
   data: {
     level: "max",
     limits: [
-      { type: "TOKENS_LIMIT", unit: 6, percentage: 10 },
-      { type: "TOKENS_LIMIT", unit: 3, percentage: 20 },
+      { type: "CREDIT_LIMIT", unit: 6, percentage: 10 },
+      { type: "CREDIT_LIMIT", unit: 3, percentage: 20 },
     ],
   },
 };
