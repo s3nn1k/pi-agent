@@ -1,6 +1,5 @@
 import { dirname, resolve, sep } from "node:path";
 import {
-  formatSkillsForPrompt,
   getAgentDir,
   type ExtensionAPI,
 } from "@earendil-works/pi-coding-agent";
@@ -39,40 +38,6 @@ export default function (pi: ExtensionAPI) {
       );
       if (leftoverPaths.some((p) => !keptPaths.has(p))) {
         prompt = prompt.replace(CONTEXT_REGION_REGEX, "");
-      }
-    }
-
-    const skills = opts.skills ?? [];
-    const keptSkills = skills.filter((s) =>
-      isWithin(resolve(dirname(s.filePath)), AGENT_DIR),
-    );
-    const foreignSkills = skills.filter(
-      (s) => !isWithin(resolve(dirname(s.filePath)), AGENT_DIR),
-    );
-    if (foreignSkills.length > 0) {
-      const skillsBlock = formatSkillsForPrompt(skills);
-      const keptSkillsBlock = formatSkillsForPrompt(keptSkills);
-      if (skillsBlock !== "" && prompt.includes(skillsBlock)) {
-        prompt = prompt.replace(skillsBlock, () => keptSkillsBlock);
-      } else {
-        prompt = prompt.replace(
-          /\n*The following skills provide specialized instructions[\s\S]*?<\/available_skills>/,
-          () => keptSkillsBlock,
-        );
-      }
-      if (
-        foreignSkills.some(
-          (s) => prompt.includes(s.filePath) || prompt.includes(`>${s.name}<`),
-        )
-      ) {
-        prompt = prompt.replace(
-          /\n*The following skills provide specialized instructions[\s\S]*?<\/available_skills>\n*/,
-          "",
-        );
-        prompt = prompt.replace(
-          /\n*<available_skills>[\s\S]*?<\/available_skills>\n*/,
-          "",
-        );
       }
     }
 
