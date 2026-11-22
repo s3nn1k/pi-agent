@@ -4,6 +4,7 @@ mcp.json
 mcp-auth.json
 
 # Рантайм и локальное состояние
+trust.json
 sessions/
 cold-start.json
 

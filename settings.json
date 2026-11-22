@@ -1,9 +1,10 @@
 {
-  "lastChangelogVersion": "1.5.2",
+  "lastChangelogVersion": "1.6.0",
   "theme": "gruvbox-dark-soft",
   "defaultProvider": "router",
   "defaultModel": "frontier",
   "defaultThinkingLevel": "high",
+  "defaultProjectTrust": "never",
   "defaultTools": [
     "+codemode"
   ],
