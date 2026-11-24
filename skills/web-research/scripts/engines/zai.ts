@@ -33,8 +33,6 @@ export function zaiKey(): string {
   return keyCache;
 }
 
-export const available = (): boolean => Boolean(zaiKey());
-
 function requireKey(): string {
   const k = zaiKey();
   if (!k)
@@ -277,6 +275,18 @@ async function zreadText(
   return decodeText(await callTool("zread", tool, args));
 }
 
+export function creditWindows(limits: unknown): string {
+  const windows = (Array.isArray(limits) ? limits : [])
+    .filter((l: any) => l?.type === "CREDIT_LIMIT")
+    .map((l: any) =>
+      Number.isFinite(l?.usage) && Number.isFinite(l?.currentValue)
+        ? `${l.currentValue}/${l.usage}`
+        : "",
+    )
+    .filter(Boolean);
+  return windows.length ? windows.join(", ") : "n/a";
+}
+
 export async function zaiHealth(): Promise<{ zai: string; mcp: string }> {
   const key = zaiKey();
   if (!key) return { zai: "no key", mcp: "unknown" };
@@ -291,12 +301,7 @@ export async function zaiHealth(): Promise<{ zai: string; mcp: string }> {
     if (refused) throw new Error(`HTTP ${refused.code}: ${refused.msg}`);
     if (j?.success === false)
       throw new Error(String(j?.msg || "unsuccessful response"));
-    const limits = j?.data?.limits;
-    const time = (Array.isArray(limits) ? limits : []).find(
-      (l: any) => l?.type === "TIME_LIMIT",
-    );
-    if (!time) throw new Error("no TIME_LIMIT entry");
-    return { zai: "ok", mcp: `${time.currentValue}/${time.usage}` };
+    return { zai: "ok", mcp: creditWindows(j?.data?.limits) };
   } catch (e) {
     const reason = errMsg(e);
     if (/^HTTP 40[13]\b/.test(reason))
