@@ -14,9 +14,9 @@
 | `defaultContext` | `fresh` \| `fork`                                                                                                                                                                                                                                                                                                          |
 
 Ключевые опц.: `thinking` (`:level`), `extensions`/`subagentOnlyExtensions`,
-`inheritSkills`/`skills`/`skillPath`, `inheritProjectContext`, `systemPromptMode`
-(`replace` дефолт \| `append`), `output`, `defaultReads`, `completionGuard`,
-`maxSubagentDepth` (Leaf: `0` - норма Leaf ниже).
+`inheritSkills`/`skills`, `inheritProjectContext`, `systemPromptMode` (`replace` дефолт \|
+`append`), `output`, `defaultReads`, `completionGuard`, `maxSubagentDepth` (Leaf: `0` -
+норма Leaf ниже).
 
 fresh vs fork: `fresh` - чистый, только задача + свой промпт (дефолт для кастомных);
 `fork` - ветка сессии родителя с фильтрацией (дефолт для packaged planner/worker/oracle).
@@ -49,10 +49,9 @@ Override builtin без копирования файла: `settings.json` ->
 уникальным контрактом (спец-формат/инструменты), не знанием.
 
 **Агент рождается пустым:** `inheritSkills: false` и без `skills:` - ребёнок видит ровно
-выданное оркестратором. Исключение - механизм роли: скилл, без которого роль не работает,
-зашивается парой `skills:` + `skillPath:` (путь от `agents/`), сам скилл живёт вне
-дискавери main. Тяжёлый побочный вывод механизма - аргумент за такую роль, не за скилл в
-main.
+выданное оркестратором. Скилл роли - из дискавери полем `skills:` (name+desc в промпт,
+тела lazy); скиллов вне дискавери под отдельную роль не заводим - тяжёлый побочный вывод
+это аргумент за делегирование, не за скрытие от main.
 
 Разрешение канона (первое сработавшее выигрывает):
 
@@ -73,8 +72,9 @@ main.
 
 Сопутствующие нормы:
 
-- `skills:` frontmatter - механизм роли или каталог редкой self-route роли; норма
-  универсальной роли - без списка: канон приезжает пином (name+desc в промпт, тела lazy).
+- `skills:` frontmatter - каталог роли из дискавери (опциональный инструмент по таске,
+  редкая self-route); норма универсальной роли - без списка: канон приезжает пином
+  (name+desc в промпт, тела lazy).
 - Граница домена: правки только в домене канона задачи; файл вне домена - стоп и
   эскалация, не house-правила.
 - Read-only механизм: allowlist `tools: read, bash` + клауза тела "bash - только
