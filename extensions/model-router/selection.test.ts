@@ -19,7 +19,7 @@ function base(overrides: Partial<SelectionInput>): SelectionInput {
     brokenProviders: new Set<string>(),
     threshold: 95,
     tier: {
-      zai: "glm-5.3:high",
+      zai: "glm-5.4:high",
       "openai-codex": "gpt-5.6-sol:xhigh",
       claude: "claude-opus",
     },
@@ -31,8 +31,8 @@ const LOW = { wk: 10, fh: 20 };
 
 describe("parseCandidateString", () => {
   it("парсит model:thinking по последнему двоеточию", () => {
-    assert.deepEqual(parseCandidateString("glm-5.3:high"), {
-      model: "glm-5.3",
+    assert.deepEqual(parseCandidateString("glm-5.4:high"), {
+      model: "glm-5.4",
       thinking: "high",
     });
     assert.deepEqual(parseCandidateString("a:b:c"), {

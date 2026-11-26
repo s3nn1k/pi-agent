@@ -29,7 +29,7 @@ const cache = (await jiti.import("../lib/quota/cache.ts")) as {
 process.env.ZAI_API_KEY = "model-router-integration-test";
 
 const models: Model[] = [
-  ["zai", "glm-5.3", "openai-completions"],
+  ["zai", "glm-5.4", "openai-completions"],
   ["zai", "glm-5.3-flash", "openai-completions"],
   ["openai-codex", "gpt-6.1-sol", "openai-responses"],
   ["openai-codex", "gpt-5.6-luna", "openai-responses"],

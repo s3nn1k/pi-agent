@@ -16,8 +16,8 @@
       "api": "openai-completions",
       "models": [
         {
-          "id": "glm-5.3",
-          "name": "GLM 5.3 (Z.AI)",
+          "id": "glm-5.4",
+          "name": "GLM 5.4 (Z.AI)",
           "reasoning": true,
           "thinkingLevelMap": {
             "off": null,
@@ -28,7 +28,7 @@
             "xhigh": null,
             "max": "max"
           },
-          "input": ["text"],
+          "input": ["text", "image"],
           "contextWindow": 1000000,
           "maxTokens": 131072,
           "cost": { "input": 1.4, "output": 4.4, "cacheRead": 0.26, "cacheWrite": 0 },

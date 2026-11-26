@@ -3,7 +3,7 @@
   "exhaustedThresholdPercent": 95,
   "tiers": {
     "frontier": {
-      "zai": "glm-5.3:high",
+      "zai": "glm-5.4:high",
       "openai-codex": "gpt-6.1-sol:high"
     },
     "workhorse": {
