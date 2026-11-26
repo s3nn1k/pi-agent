@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "1.6.0",
+  "lastChangelogVersion": "1.6.1",
   "theme": "gruvbox-dark-soft",
   "defaultProvider": "router",
   "defaultModel": "frontier",
@@ -44,6 +44,6 @@
     "app.editor.external": []
   },
   "extensionChangelogVersions": {
-    "{\"source\":\"npm:pi-subagents\",\"scope\":\"user\"}": "0.88.1"
+    "{\"source\":\"npm:pi-subagents\",\"scope\":\"user\"}": "0.90.0"
   }
 }
